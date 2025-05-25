@@ -25,6 +25,16 @@ export const users = createTable("user", (d) => ({
 		})
 		.default(sql`CURRENT_TIMESTAMP`),
 	image: d.varchar({ length: 255 }),
+	password: d.varchar({ length: 255 }),
+	createdAt: d
+		.timestamp({ mode: "date", withTimezone: true })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: d
+		.timestamp({ mode: "date", withTimezone: true })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+	isDeleted: d.boolean().notNull().default(false),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({

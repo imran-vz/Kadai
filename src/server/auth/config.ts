@@ -1,6 +1,10 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { DefaultSession, NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import bcrypt from "bcrypt";
+import z4 from "zod/v4";
+import Credentials from "next-auth/providers/credentials";
+import { eq } from "drizzle-orm";
 
 import { db } from "~/server/db";
 import {
@@ -9,6 +13,7 @@ import {
 	users,
 	verificationTokens,
 } from "~/server/db/schema";
+import { getUserByEmail } from "../db/modules/users";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -48,6 +53,46 @@ export const authConfig = {
 		 *
 		 * @see https://next-auth.js.org/providers/github
 		 */
+		Credentials({
+			credentials: {
+				email: { label: "Email" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize({ email, password }) {
+				const parsedCredentials = z4
+					.object({ email: z4.email(), password: z4.string().min(6) })
+					.safeParse({ email, password });
+
+				if (!parsedCredentials.success) return null;
+				const [user, err] = await getUserByEmail(parsedCredentials.data.email);
+				if (err) {
+					console.log("User not found");
+					return null;
+				}
+
+				if (!user.password) {
+					console.log("User has no password");
+					return null;
+				}
+
+				const passwordMatch = await bcrypt.compare(
+					parsedCredentials.data.password,
+					user.password,
+				);
+
+				if (!passwordMatch) {
+					console.log("Password does not match");
+					return null;
+				}
+
+				return {
+					email: user.email,
+					name: user.name,
+					id: user.id,
+					image: user.image,
+				};
+			},
+		}),
 	],
 	adapter: DrizzleAdapter(db, {
 		usersTable: users,
