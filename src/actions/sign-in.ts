@@ -14,9 +14,11 @@ export async function signInWithCredentials(formData: FormData) {
 	if (!email || !password) {
 		return "Email and password are required";
 	}
+
 	try {
 		await signIn("credentials", { email, password, redirect: false });
 	} catch (error) {
+		console.log(" :100 | signInWithCredentials | error:", error);
 		if (error instanceof AuthError) {
 			switch (error.type) {
 				case "CredentialsSignin":

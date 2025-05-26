@@ -17,7 +17,7 @@ export async function Navbar() {
 					<UserDropDown session={session} key={session.user?.image} />
 				) : (
 					<Link
-						href="/api/auth/signin"
+						href="/login"
 						className="rounded-full bg-white/10 px-6 py-1 font-semibold no-underline outline transition hover:bg-white/20"
 					>
 						Sign in

@@ -95,3 +95,34 @@ export const verificationTokens = createTable(
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+export const passwordResetTokens = createTable(
+	"password_reset_tokens",
+	(d) => ({
+		id: d
+			.varchar({ length: 255 })
+			.notNull()
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		token: d.text("token").notNull(),
+		userId: d
+			.varchar({ length: 255 })
+			.notNull()
+			.references(() => users.id),
+		expiresAt: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+		createdAt: d
+			.timestamp({ mode: "date", withTimezone: true })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	}),
+);
+
+export const passwordResetTokensRelations = relations(
+	passwordResetTokens,
+	({ one }) => ({
+		user: one(users, {
+			fields: [passwordResetTokens.userId],
+			references: [users.id],
+		}),
+	}),
+);

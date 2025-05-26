@@ -3,13 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, GalleryVerticalEnd, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { signInWithCredentials } from "~/actions/sign-in";
+import { resetPassword } from "~/actions/password-reset";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import {
@@ -21,67 +21,65 @@ import {
 	FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { SignInWithGoogle } from "./signin-button";
 
 const passwordRegex =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-const loginSchema = z.object({
-	email: z.string().email(),
+const resetPasswordSchema = z.object({
 	password: z
 		.string()
 		.min(8)
 		.max(30)
 		.superRefine((val, ctx) => {
-			if (val.length === 0) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Password is required",
-				});
-			}
-
 			if (!passwordRegex.test(val)) {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
 					message:
-						"Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one special character",
+						"Password must contain at least 8 characters, one uppercase letter, one lowercase letter, and one special character",
 				});
 			}
 		}),
 });
 
-export function LoginForm({
+export function ResetPasswordForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const token = searchParams.get("token");
 	const [isLoading, setIsLoading] = useState(false);
 	const [fieldType, setFieldType] = useState<"text" | "password">("password");
-	const form = useForm<z.infer<typeof loginSchema>>({
-		resolver: zodResolver(loginSchema),
+
+	const form = useForm<z.infer<typeof resetPasswordSchema>>({
+		resolver: zodResolver(resetPasswordSchema),
 		defaultValues: {
-			email: "",
 			password: "",
 		},
 	});
 
-	const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+	const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
+		if (!token) {
+			toast.error("Invalid reset token");
+			return;
+		}
+
 		setIsLoading(true);
 		const formData = new FormData();
-		formData.append("email", data.email);
+		formData.append("token", token);
 		formData.append("password", data.password);
+
 		try {
-			const result = await signInWithCredentials(formData);
-			console.log(" :75 | onSubmit | result:", result);
-			if (result) {
-				console.error(result);
-				toast.error(result);
+			const result = await resetPassword(formData);
+			if (result.error) {
+				toast.error(result.error);
 				return;
 			}
-
-			router.push("/");
+			toast.success("Password reset successfully");
+			router.push("/login");
 		} catch (error) {
 			console.error(error);
+			toast.error("Something went wrong");
 		} finally {
 			setIsLoading(false);
 		}
@@ -94,7 +92,7 @@ export function LoginForm({
 					<div className="flex flex-col gap-6">
 						<div className="flex flex-col items-center gap-2">
 							<Link
-								href="#"
+								href="/"
 								className="flex flex-col items-center gap-2 font-medium"
 							>
 								<div className="flex h-8 w-8 items-center justify-center rounded-lg">
@@ -102,49 +100,25 @@ export function LoginForm({
 								</div>
 								<span className="sr-only">Kadai</span>
 							</Link>
-							<h1 className="font-bold text-xl">Welcome to Kadai</h1>
+							<h1 className="font-bold text-xl">Reset your password</h1>
 							<div className="text-center text-sm">
-								Don&apos;t have an account?{" "}
-								<Link href="/signup" className="underline underline-offset-4">
-									Sign up
-								</Link>
+								Enter your new password below.
 							</div>
 						</div>
 						<div className="flex flex-col gap-6">
 							<FormField
 								control={form.control}
-								name="email"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Email</FormLabel>
-										<FormControl>
-											<Input
-												id="email"
-												required
-												placeholder="me@example.com"
-												autoComplete="email"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
 								name="password"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Password</FormLabel>
-										<FormControl className="">
-											<div className="relative ">
+										<FormLabel>New Password</FormLabel>
+										<FormControl>
+											<div className="relative">
 												<Input
 													id="password"
+													type={fieldType}
 													required
 													placeholder="********"
-													autoComplete="current-password"
-													type={fieldType}
 													{...field}
 												/>
 												<Button
@@ -166,31 +140,17 @@ export function LoginForm({
 								)}
 							/>
 
-							<div className="text-sm">
-								<Link
-									href="/forgot-password"
-									className="underline underline-offset-4"
-								>
-									Forgot password?
-								</Link>
-							</div>
-
 							<Button type="submit" className="w-full" disabled={isLoading}>
 								{isLoading ? (
 									<Loader2 className="size-4 animate-spin" />
 								) : (
-									"Login"
+									"Reset password"
 								)}
 							</Button>
 						</div>
-						<div className="relative border-primary text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-primary/50 after:border-t" />
 					</div>
 				</form>
 			</Form>
-
-			<div>
-				<SignInWithGoogle />
-			</div>
 		</div>
 	);
 }

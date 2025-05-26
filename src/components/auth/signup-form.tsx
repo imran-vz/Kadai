@@ -63,7 +63,6 @@ export function SignupForm({
 	});
 
 	const onSubmit = async (data: z.infer<typeof signupSchema>) => {
-		console.log(data);
 		try {
 			const formData = new FormData();
 			formData.append("email", data.email);
@@ -86,7 +85,7 @@ export function SignupForm({
 								href="#"
 								className="flex flex-col items-center gap-2 font-medium"
 							>
-								<div className="flex h-8 w-8 items-center justify-center rounded-xs">
+								<div className="flex h-8 w-8 items-center justify-center rounded-lg">
 									<GalleryVerticalEnd className="size-6" />
 								</div>
 								<span className="sr-only">Kadai</span>
@@ -164,16 +163,12 @@ export function SignupForm({
 								Sign up
 							</Button>
 						</div>
-						<div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-border after:border-t">
-							<span className="relative z-10 bg-background px-2 text-muted-foreground">
-								Or
-							</span>
-						</div>
+						<div className="relative border-primary text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-primary/50 after:border-t" />
 					</div>
 				</form>
 			</Form>
 
-			<div className="grid gap-4 sm:grid-cols-2">
+			<div>
 				<SignInWithGoogle />
 			</div>
 		</div>
