@@ -1,10 +1,9 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import type { DefaultSession, NextAuthConfig } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcrypt";
-import z4 from "zod/v4";
+import type { DefaultSession, NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { eq } from "drizzle-orm";
+import GoogleProvider from "next-auth/providers/google";
+import z4 from "zod/v4";
 
 import { db } from "~/server/db";
 import {
@@ -42,6 +41,10 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+	pages: {
+		signIn: "/login",
+		signOut: "/logout",
+	},
 	providers: [
 		GoogleProvider,
 		/**
