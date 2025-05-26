@@ -1,12 +1,17 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, GalleryVerticalEnd, Loader2 } from "lucide-react";
 import Link from "next/link";
-
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+
+import { signInWithCredentials } from "~/actions/sign-in";
+import { cn } from "~/lib/utils";
+import { Button } from "../ui/button";
 import {
 	Form,
 	FormControl,
@@ -15,13 +20,8 @@ import {
 	FormLabel,
 	FormMessage,
 } from "../ui/form";
-import { SignInWithGoogle } from "./signin-button";
-import { signInWithCredentials } from "../../actions/sign-in";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { cn } from "~/lib/utils";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import { SignInWithGoogle } from "./signin-button";
 
 const passwordRegex =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;

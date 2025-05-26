@@ -3,9 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { signUp } from "~/actions/sign-up";
+import { cn } from "~/lib/utils";
+import { Button } from "../ui/button";
 import {
 	Form,
 	FormControl,
@@ -13,12 +17,8 @@ import {
 	FormLabel,
 	FormMessage,
 } from "../ui/form";
-import { SignInWithGoogle } from "./signin-button";
-import { useRouter } from "next/navigation";
-import { signUp } from "~/actions/sign-up";
-import { cn } from "~/lib/utils";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import { SignInWithGoogle } from "./signin-button";
 
 const passwordRegex =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -89,7 +89,7 @@ export function SignupForm({
 								<div className="flex h-8 w-8 items-center justify-center rounded-xs">
 									<GalleryVerticalEnd className="size-6" />
 								</div>
-								<span className="sr-only">Cocoa Comaa</span>
+								<span className="sr-only">Kadai</span>
 							</Link>
 							<h1 className="font-bold text-xl">Create your account</h1>
 							<div className="text-center text-sm">

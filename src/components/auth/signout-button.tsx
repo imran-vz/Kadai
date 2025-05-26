@@ -1,8 +1,6 @@
-import { signOutAction } from "~/actions/sign-out";
-
 export function SignOutButton() {
 	return (
-		<form action={signOutAction}>
+		<form method="GET" action="/api/auth/signout">
 			<button type="submit">Sign Out</button>
 		</form>
 	);

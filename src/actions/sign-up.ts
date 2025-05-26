@@ -1,8 +1,8 @@
 "use server";
 
+import { genSalt, hash } from "bcrypt";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
-import { hash, genSalt } from "bcrypt";
 const saltRounds = 10;
 
 export async function signUp(formData: FormData) {

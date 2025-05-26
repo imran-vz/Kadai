@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { Navbar } from "~/components/navbar/navbar";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
 		<html lang="en" className={`${inter.variable}`}>
 			<body>
 				<TRPCReactProvider>
+					<Navbar />
 					<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#cdd193] to-[#478c5c] text-primary">
 						{children}
 					</div>

@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
-import { db } from "../index";
+import { type Result, err, ok } from "~/lib/result";
 import { DatabaseError, NotFoundError } from "../errors";
+import { db } from "../index";
 import { users } from "../schema";
-import { err, ok, type Result } from "~/lib/result";
 
 export async function getUserByEmail(
 	email: string,
