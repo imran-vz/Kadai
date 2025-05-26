@@ -25,7 +25,7 @@ export default function RootLayout({
 			<body>
 				<TRPCReactProvider>
 					<Navbar />
-					<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#cdd193] to-[#478c5c] text-primary">
+					<div className="flex min-h-svh flex-col items-center justify-center bg-gradient-to-b from-[#cdd193] to-[#478c5c] text-primary">
 						{children}
 					</div>
 				</TRPCReactProvider>
