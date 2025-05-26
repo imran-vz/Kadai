@@ -6,10 +6,6 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { signUp } from "../../actions/sign-up";
 import {
 	Form,
 	FormControl,
@@ -19,6 +15,10 @@ import {
 } from "../ui/form";
 import { SignInWithGoogle } from "./signin-button";
 import { useRouter } from "next/navigation";
+import { signUp } from "~/actions/sign-up";
+import { cn } from "~/lib/utils";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 
 const passwordRegex =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -91,7 +91,7 @@ export function SignupForm({
 								</div>
 								<span className="sr-only">Cocoa Comaa</span>
 							</Link>
-							<h1 className="text-xl font-bold">Create your account</h1>
+							<h1 className="font-bold text-xl">Create your account</h1>
 							<div className="text-center text-sm">
 								Already have an account?{" "}
 								<Link href="/login" className="underline underline-offset-4">
@@ -164,7 +164,7 @@ export function SignupForm({
 								Sign up
 							</Button>
 						</div>
-						<div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+						<div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-border after:border-t">
 							<span className="relative z-10 bg-background px-2 text-muted-foreground">
 								Or
 							</span>
