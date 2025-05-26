@@ -1,9 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GalleryVerticalEnd } from "lucide-react";
+import { Eye, EyeOff, GalleryVerticalEnd } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,6 +54,7 @@ export function SignupForm({
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
 	const router = useRouter();
+	const [fieldType, setFieldType] = useState<"text" | "password">("password");
 	const form = useForm<z.infer<typeof signupSchema>>({
 		resolver: zodResolver(signupSchema),
 		defaultValues: {
@@ -146,13 +148,29 @@ export function SignupForm({
 									<div className="grid gap-2">
 										<FormLabel>Password</FormLabel>
 										<FormControl>
-											<Input
-												id="password"
-												type="password"
-												required
-												placeholder="••••••••"
-												{...field}
-											/>
+											<div className="relative">
+												<Input
+													id="password"
+													required
+													placeholder="********"
+													autoComplete="current-password"
+													type={fieldType}
+													{...field}
+												/>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="-translate-y-1/2 absolute top-1/2 right-2"
+													type="button"
+													onClick={() =>
+														setFieldType(
+															fieldType === "text" ? "password" : "text",
+														)
+													}
+												>
+													{fieldType === "text" ? <Eye /> : <EyeOff />}
+												</Button>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</div>

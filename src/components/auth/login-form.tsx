@@ -137,8 +137,8 @@ export function LoginForm({
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Password</FormLabel>
-										<FormControl className="">
-											<div className="relative ">
+										<FormControl>
+											<div className="relative">
 												<Input
 													id="password"
 													required
@@ -151,6 +151,7 @@ export function LoginForm({
 													variant="ghost"
 													size="icon"
 													className="-translate-y-1/2 absolute top-1/2 right-2"
+													type="button"
 													onClick={() =>
 														setFieldType(
 															fieldType === "text" ? "password" : "text",
