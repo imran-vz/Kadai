@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
+import { createId } from "@paralleldrive/cuid2";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -15,7 +16,7 @@ export const users = createTable("user", (d) => ({
 		.varchar({ length: 255 })
 		.notNull()
 		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
+		.$defaultFn(() => createId()),
 	name: d.varchar({ length: 255 }),
 	email: d.varchar({ length: 255 }).notNull(),
 	emailVerified: d
@@ -103,7 +104,7 @@ export const passwordResetTokens = createTable(
 			.varchar({ length: 255 })
 			.notNull()
 			.primaryKey()
-			.$defaultFn(() => crypto.randomUUID()),
+			.$defaultFn(() => createId()),
 		token: d.text("token").notNull(),
 		userId: d
 			.varchar({ length: 255 })
@@ -126,3 +127,75 @@ export const passwordResetTokensRelations = relations(
 		}),
 	}),
 );
+
+export const itemsTable = createTable(
+	"items",
+	(d) => ({
+		id: d
+			.varchar({ length: 255 })
+			.notNull()
+			.primaryKey()
+			.$defaultFn(() => createId()),
+		name: d.varchar({ length: 255 }).notNull(),
+		price: d.integer().notNull(),
+		description: d.varchar({ length: 255 }),
+		isDeleted: d.boolean().notNull().default(false),
+		enabled: d.boolean().notNull().default(true),
+	}),
+	(t) => [
+		index("t_name_idx").on(t.name),
+		index("t_enabled_idx").on(t.enabled),
+		index("t_items_is_deleted_idx").on(t.isDeleted),
+	],
+);
+
+export const ordersTable = createTable(
+	"orders",
+	(d) => ({
+		id: d
+			.varchar({ length: 255 })
+			.notNull()
+			.primaryKey()
+			.$defaultFn(() => createId()),
+		customerName: d.varchar({ length: 255 }).notNull(),
+		createdAt: d.timestamp().notNull().defaultNow(),
+		deliveryCost: d
+			.numeric({ precision: 5, scale: 2 })
+			.notNull()
+			.default("0.00"),
+		total: d.numeric({ precision: 10, scale: 2 }).notNull(),
+		status: d
+			.varchar("status", { enum: ["pending", "completed", "cancelled"] })
+			.notNull(),
+		isDeleted: d.boolean().notNull().default(false),
+	}),
+	(t) => [
+		index("t_status_idx").on(t.status),
+		index("t_orders_is_deleted_idx").on(t.isDeleted),
+	],
+);
+
+export const ordersRelations = relations(ordersTable, ({ many }) => ({
+	orderItems: many(orderItemsTable, { relationName: "order_items" }),
+}));
+
+export const orderItemsTable = createTable(
+	"order_items",
+	(d) => ({
+		orderId: d.varchar().notNull(),
+		dessertId: d.varchar().notNull(),
+		quantity: d.integer().notNull(),
+	}),
+	(t) => [primaryKey({ columns: [t.orderId, t.dessertId] })],
+);
+
+export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
+	order: one(ordersTable, {
+		fields: [orderItemsTable.orderId],
+		references: [ordersTable.id],
+	}),
+	dessert: one(itemsTable, {
+		fields: [orderItemsTable.dessertId],
+		references: [itemsTable.id],
+	}),
+}));
