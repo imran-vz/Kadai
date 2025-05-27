@@ -1,40 +1,91 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import type { RouterOutputs } from "~/trpc/react";
+import { useState } from "react";
+import { Badge } from "~/components/ui/badge";
+import { DataTable } from "~/components/ui/data-table";
+import { cn } from "~/lib/utils";
+import type { orders } from "~/server/db/schema";
+import { OrderDetailsModal } from "./order-details-modal";
 
-type Order = RouterOutputs["orders"]["getAll"][number];
+const statusStyles = {
+	pending:
+		"bg-yellow-100 hover:bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500",
+	processing:
+		"bg-blue-100 hover:bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500",
+	completed:
+		"bg-green-100 hover:bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500",
+	cancelled:
+		"bg-red-100 hover:bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500",
+} as const;
 
-export const columns: ColumnDef<Order>[] = [
+function StatusBadge({ status }: { status: keyof typeof statusStyles }) {
+	return (
+		<Badge
+			variant="secondary"
+			className={cn("capitalize", statusStyles[status])}
+		>
+			{status}
+		</Badge>
+	);
+}
+
+export const columns: ColumnDef<typeof orders.$inferSelect>[] = [
 	{
-		accessorKey: "id",
-		header: "Order ID",
+		accessorKey: "customerName",
+		header: "Customer",
 	},
 	{
 		accessorKey: "status",
 		header: "Status",
-		cell: ({ row }) => (
-			<div className="capitalize">{row.getValue("status")}</div>
-		),
+		cell: ({ row }) => {
+			const status = row.getValue("status") as keyof typeof statusStyles;
+			return <StatusBadge status={status} />;
+		},
 	},
 	{
 		accessorKey: "total",
 		header: "Total",
 		cell: ({ row }) => {
-			const amount = Number.parseFloat(row.getValue("total"));
-			const formatted = new Intl.NumberFormat("en-US", {
-				style: "currency",
-				currency: "USD",
-			}).format(amount);
-			return formatted;
+			const total = row.getValue("total") as number;
+			return total.toLocaleString("en-US", {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			});
 		},
 	},
 	{
 		accessorKey: "createdAt",
 		header: "Date",
 		cell: ({ row }) => {
-			return format(new Date(row.getValue("createdAt")), "PPp");
+			return new Date(row.getValue("createdAt")).toLocaleDateString();
 		},
 	},
 ];
+
+export function OrdersTable({
+	data,
+}: {
+	data: (typeof orders.$inferSelect)[];
+}) {
+	const [selectedOrder, setSelectedOrder] = useState<
+		typeof orders.$inferSelect | null
+	>(null);
+
+	return (
+		<>
+			<DataTable
+				columns={columns}
+				data={data}
+				onRowClick={(row) => setSelectedOrder(row.original)}
+			/>
+			{selectedOrder && (
+				<OrderDetailsModal
+					order={selectedOrder}
+					open={Boolean(selectedOrder)}
+					onOpenChange={(open) => !open && setSelectedOrder(null)}
+				/>
+			)}
+		</>
+	);
+}

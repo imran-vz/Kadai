@@ -1,7 +1,7 @@
+import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
-import { createId } from "@paralleldrive/cuid2";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -139,7 +139,7 @@ export const items = createTable(
 			.primaryKey()
 			.$defaultFn(() => createId()),
 		name: d.varchar({ length: 255 }).notNull(),
-		price: d.integer().notNull(),
+		price: d.numeric({ precision: 10, scale: 2 }).notNull(),
 		description: d.varchar({ length: 255 }),
 		isDeleted: d.boolean().notNull().default(false),
 		enabled: d.boolean().notNull().default(true),
@@ -191,7 +191,9 @@ export const orders = createTable(
 			.default("0.00"),
 		total: d.numeric({ precision: 10, scale: 2 }).notNull(),
 		status: d
-			.varchar("status", { enum: ["pending", "completed", "cancelled"] })
+			.varchar("status", {
+				enum: ["pending", "processing", "completed", "cancelled"],
+			})
 			.notNull(),
 		isDeleted: d.boolean().notNull().default(false),
 	}),
@@ -204,27 +206,38 @@ export const orders = createTable(
 export const orderItems = createTable(
 	"order_items",
 	(d) => ({
-		orderId: d.varchar().notNull(),
-		dessertId: d.varchar().notNull(),
+		orderId: d
+			.varchar()
+			.notNull()
+			.references(() => orders.id),
+		itemId: d
+			.varchar()
+			.notNull()
+			.references(() => items.id),
 		quantity: d.integer().notNull(),
 	}),
-	(t) => [primaryKey({ columns: [t.orderId, t.dessertId] })],
+	(t) => [primaryKey({ columns: [t.orderId, t.itemId] })],
 );
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
-	order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
-	dessert: one(items, {
-		fields: [orderItems.dessertId],
+	order: one(orders, {
+		fields: [orderItems.orderId],
+		references: [orders.id],
+		relationName: "order__order_items",
+	}),
+	item: one(items, {
+		fields: [orderItems.itemId],
 		references: [items.id],
+		relationName: "item__order_items",
 	}),
 }));
 
-export const itemsRelations = relations(items, ({ many, one }) => ({
-	orders: many(orderItems, { relationName: "order_items" }),
-	users: one(users, { fields: [items.userId], references: [users.id] }),
+export const ordersRelations = relations(orders, ({ many, one }) => ({
+	orderItems: many(orderItems, { relationName: "order__order_items" }),
+	user: one(users, { fields: [orders.userId], references: [users.id] }),
 }));
 
-export const ordersRelations = relations(orders, ({ many, one }) => ({
-	orderItems: many(orderItems, { relationName: "order_items" }),
-	users: one(users, { fields: [orders.userId], references: [users.id] }),
+export const itemsRelations = relations(items, ({ many, one }) => ({
+	orderItems: many(orderItems, { relationName: "item__order_items" }),
+	user: one(users, { fields: [items.userId], references: [users.id] }),
 }));

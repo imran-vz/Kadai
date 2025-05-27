@@ -1,21 +1,27 @@
-import { redirect } from "next/navigation";
-import { api } from "~/trpc/server";
-import { columns } from "~/components/orders/columns";
-import { DataTable } from "~/components/orders/data-table";
-import { auth } from "~/server/auth";
+"use client";
 
-export default async function OrdersPage() {
-	const session = await auth();
-	if (!session) {
-		redirect("/api/auth/signin");
+import { OrdersTable } from "~/components/orders/columns";
+import { LoadingSpinner } from "~/components/ui/loading-spinner";
+import { api } from "~/trpc/react";
+
+export default function OrdersPage() {
+	const { data: orders, isLoading } = api.orders.getAll.useQuery();
+
+	if (isLoading) {
+		return (
+			<div className="flex h-[calc(100vh-200px)] items-center justify-center">
+				<LoadingSpinner className="h-12 w-12 animate-spin text-primary" />
+			</div>
+		);
 	}
-
-	const orders = await api.orders.getAll();
 
 	return (
 		<div className="container py-10">
-			<h1 className="mb-8 font-bold text-3xl">Orders</h1>
-			<DataTable columns={columns} data={orders} />
+			<div className="mb-8">
+				<h1 className="font-bold text-2xl">Orders</h1>
+			</div>
+
+			<OrdersTable data={orders ?? []} />
 		</div>
 	);
 }

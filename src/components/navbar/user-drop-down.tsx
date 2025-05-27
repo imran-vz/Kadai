@@ -9,11 +9,11 @@ import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-	DropdownMenuSeparator,
 	DropdownMenuGroup,
+	DropdownMenuItem,
 	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
 export function UserDropDown({ session }: { session: Session }) {

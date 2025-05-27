@@ -1,7 +1,7 @@
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { items } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const itemsRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -21,7 +21,7 @@ export const itemsRouter = createTRPCRouter({
 					name: input.name,
 					description: input.description || null,
 					userId: ctx.session.user.id,
-					price: input.price,
+					price: input.price.toString(),
 				});
 				return { success: true };
 			} catch (error) {
@@ -113,7 +113,7 @@ export const itemsRouter = createTRPCRouter({
 					.set({
 						name: input.name,
 						description: input.description || null,
-						price: input.price,
+						price: input.price.toString(),
 						updatedAt: new Date(),
 					})
 					.where(eq(items.id, input.id));

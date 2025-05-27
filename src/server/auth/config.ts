@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import z4 from "zod/v4";
 
+import { env } from "~/env";
 import { db } from "~/server/db";
 import {
 	accounts,
@@ -13,7 +14,6 @@ import {
 	verificationTokens,
 } from "~/server/db/schema";
 import { getUserByEmail } from "../db/modules/users";
-import { env } from "~/env";
 
 // /**
 //  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

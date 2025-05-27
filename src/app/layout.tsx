@@ -3,13 +3,13 @@ import "~/styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { SessionProvider } from "next-auth/react";
 import { Footer } from "~/components/footer/footer";
+import { LoginToast } from "~/components/login-toast";
 import { Navbar } from "~/components/navbar/navbar";
 import { Toaster } from "~/components/ui/sonner";
-import { TRPCReactProvider } from "~/trpc/react";
-import { LoginToast } from "~/components/login-toast";
 import { auth } from "~/server/auth";
-import { SessionProvider } from "next-auth/react";
+import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
 	title: "Create T3 App",

@@ -9,10 +9,10 @@ import {
 	DialogTitle,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
-import { api } from "~/trpc/react";
+import { Textarea } from "~/components/ui/textarea";
 import type { items } from "~/server/db/schema";
+import { api } from "~/trpc/react";
 
 interface EditItemModalProps {
 	item: typeof items.$inferSelect;

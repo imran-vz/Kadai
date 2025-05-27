@@ -2,9 +2,9 @@
 
 import { genSalt, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
+import { generatePasswordResetToken, sendPasswordResetEmail } from "~/lib/auth";
 import { db } from "~/server/db";
 import { passwordResetTokens, users } from "~/server/db/schema";
-import { generatePasswordResetToken, sendPasswordResetEmail } from "~/lib/auth";
 
 export async function forgotPassword(formData: FormData) {
 	const email = formData.get("email") as string;

@@ -11,8 +11,8 @@ import {
 	DialogTrigger,
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
+import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/trpc/react";
 
 export function AddItemModal() {
