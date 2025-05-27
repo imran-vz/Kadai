@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,10 +12,10 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { api } from "~/trpc/react";
-import type { Item } from "~/server/db/schema";
+import type { items } from "~/server/db/schema";
 
 interface EditItemModalProps {
-	item: Item;
+	item: typeof items.$inferSelect;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
