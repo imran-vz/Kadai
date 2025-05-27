@@ -100,40 +100,42 @@ export function OrderDetailsModal({
 								<LoadingSpinner className="h-6 w-6 animate-spin text-primary" />
 							</div>
 						) : (
-							<div className="max-h-[70vh] max-w-[20rem] overflow-auto">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Item</TableHead>
-											<TableHead>Quantity</TableHead>
-											<TableHead>Price</TableHead>
-											<TableHead>Total</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{orderDetails?.items.map((item: OrderItem) => (
-											<TableRow key={item.itemId}>
-												<TableCell>{item.name}</TableCell>
-												<TableCell>{item.quantity}</TableCell>
-												<TableCell>
-													{item.price.toLocaleString("en-US", {
-														minimumFractionDigits: 2,
-														maximumFractionDigits: 2,
-													})}
-												</TableCell>
-												<TableCell>
-													{(item.price * item.quantity).toLocaleString(
-														"en-US",
-														{
+							<div className="grid max-h-[70vh] grid-cols-1 overflow-auto">
+								<div className="w-full min-w-full overflow-x-auto">
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead className="w-[40%]">Item</TableHead>
+												<TableHead className="w-[20%]">Quantity</TableHead>
+												<TableHead className="w-[20%]">Price</TableHead>
+												<TableHead className="w-[20%]">Total</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{orderDetails?.items.map((item: OrderItem) => (
+												<TableRow key={item.itemId}>
+													<TableCell>{item.name}</TableCell>
+													<TableCell>{item.quantity}</TableCell>
+													<TableCell>
+														{item.price.toLocaleString("en-US", {
 															minimumFractionDigits: 2,
 															maximumFractionDigits: 2,
-														},
-													)}
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+														})}
+													</TableCell>
+													<TableCell>
+														{(item.price * item.quantity).toLocaleString(
+															"en-US",
+															{
+																minimumFractionDigits: 2,
+																maximumFractionDigits: 2,
+															},
+														)}
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
 							</div>
 						)}
 					</div>
