@@ -3,8 +3,13 @@ import "~/styles/globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { Footer } from "~/components/footer/footer";
 import { Navbar } from "~/components/navbar/navbar";
+import { Toaster } from "~/components/ui/sonner";
 import { TRPCReactProvider } from "~/trpc/react";
+import { LoginToast } from "~/components/login-toast";
+import { auth } from "~/server/auth";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
 	title: "Create T3 App",
@@ -17,17 +22,26 @@ const inter = Inter({
 	variable: "--font-inter",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
+	const session = await auth();
+
 	return (
 		<html lang="en" className={`${inter.variable}`}>
 			<body>
 				<TRPCReactProvider>
-					<Navbar />
-					<div className="flex min-h-svh flex-col items-center justify-center bg-gradient-to-b bg-primary-foreground/20 text-primary">
-						{children}
-					</div>
+					<SessionProvider session={session}>
+						<>
+							<Navbar />
+							<div className="min-h-svh bg-gradient-to-b bg-primary-foreground/20 pt-[4.5rem] text-primary">
+								{children}
+							</div>
+							<Toaster richColors position="top-center" />
+							<Footer />
+							<LoginToast />
+						</>
+					</SessionProvider>
 				</TRPCReactProvider>
 			</body>
 		</html>

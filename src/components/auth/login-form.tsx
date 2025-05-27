@@ -72,14 +72,13 @@ export function LoginForm({
 		formData.append("password", data.password);
 		try {
 			const result = await signInWithCredentials(formData);
-			console.log(" :75 | onSubmit | result:", result);
 			if (result) {
 				console.error(result);
 				toast.error(result);
 				return;
 			}
 
-			router.push("/");
+			window.location.href = "/?welcome=1";
 		} catch (error) {
 			console.error(error);
 		} finally {
