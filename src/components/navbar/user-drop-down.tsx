@@ -43,10 +43,10 @@ export function UserDropDown({ session }: { session: Session }) {
 				<DropdownMenuLabel>My Account</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
+					<DropdownMenuItem asChild>
 						<Link href="/items">Items</Link>
 					</DropdownMenuItem>
-					<DropdownMenuItem>
+					<DropdownMenuItem asChild>
 						<Link href="/orders">Orders</Link>
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
