@@ -28,7 +28,7 @@ import {
 	SelectValue,
 } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface OrderDetailsModalProps {
 	order: typeof orders.$inferSelect;
@@ -76,42 +76,9 @@ export function OrderDetailsModal({
 			},
 		});
 
-	const [viewportHeight, setViewportHeight] = useState(0);
-
-	// Update viewport height when keyboard opens/closes
-	useEffect(() => {
-		const updateViewportHeight = () => {
-			setViewportHeight(window.visualViewport?.height || window.innerHeight);
-		};
-
-		// Initial height
-		updateViewportHeight();
-
-		// Add listeners for both visualViewport and resize
-		window.visualViewport?.addEventListener("resize", updateViewportHeight);
-		window.addEventListener("resize", updateViewportHeight);
-
-		return () => {
-			window.visualViewport?.removeEventListener(
-				"resize",
-				updateViewportHeight,
-			);
-			window.removeEventListener("resize", updateViewportHeight);
-		};
-	}, []);
-
 	return (
 		<Dialog open={!!order.id} onOpenChange={onOpenChange}>
-			<DialogContent
-				className="max-h-[90vh] max-w-[90vw] overflow-hidden"
-				style={{
-					position: "fixed",
-					top: Math.max(20, (viewportHeight - 600) / 2), // Adjust 600 based on your modal's typical height
-					transform: "translateX(-50%)",
-					height: "auto",
-					maxHeight: Math.min(600, viewportHeight - 40), // Leave 20px padding top and bottom
-				}}
-			>
+			<DialogContent className="max-h-[90vh] max-w-[90vw] overflow-hidden">
 				<DialogHeader>
 					<DialogTitle>Order Details</DialogTitle>
 				</DialogHeader>
