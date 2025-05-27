@@ -68,22 +68,21 @@ export function OrdersTable({
 }: {
 	data: (typeof orders.$inferSelect)[];
 }) {
-	const [selectedOrder, setSelectedOrder] = useState<
-		typeof orders.$inferSelect | null
-	>(null);
+	const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+	const selectedOrder =
+		data.find((order) => order.id === selectedOrderId) || null;
 
 	return (
 		<>
 			<DataTable
 				columns={columns}
 				data={data}
-				onRowClick={(row) => setSelectedOrder(row.original)}
+				onRowClick={(row) => setSelectedOrderId(row.original.id)}
 			/>
 			{selectedOrder && (
 				<OrderDetailsModal
 					order={selectedOrder}
-					open={Boolean(selectedOrder)}
-					onOpenChange={(open) => !open && setSelectedOrder(null)}
+					onOpenChange={(open) => !open && setSelectedOrderId(null)}
 				/>
 			)}
 		</>

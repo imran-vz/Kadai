@@ -22,7 +22,7 @@ export default function ItemsPage() {
 	}
 
 	return (
-		<div className="container py-10">
+		<div className="container mx-auto py-10">
 			<div className="mb-8 flex items-center justify-between">
 				<h1 className="font-bold text-2xl">Items</h1>
 				<AddItemModal />

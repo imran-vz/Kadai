@@ -20,10 +20,18 @@ import type { OrderItem } from "~/server/api/routers/orders";
 import type { orders } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select";
+import { Button } from "~/components/ui/button";
+import { useState } from "react";
 
 interface OrderDetailsModalProps {
 	order: typeof orders.$inferSelect;
-	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
@@ -51,16 +59,25 @@ function StatusBadge({ status }: { status: keyof typeof statusStyles }) {
 
 export function OrderDetailsModal({
 	order,
-	open,
 	onOpenChange,
 }: OrderDetailsModalProps) {
 	const { data: orderDetails, isLoading } = api.orders.getOrderDetails.useQuery(
 		{ orderId: order.id },
-		{ enabled: open },
+		{ enabled: !!order.id },
 	);
 
+	const [status, setStatus] = useState(order.status);
+	const utils = api.useUtils();
+	const { mutate: updateStatus, isPending: isUpdating } =
+		api.orders.updateStatus.useMutation({
+			onSuccess: () => {
+				void utils.orders.getOrderDetails.invalidate({ orderId: order.id });
+				void utils.orders.getAll.invalidate();
+			},
+		});
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={!!order.id} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] max-w-[90vw] overflow-hidden">
 				<DialogHeader>
 					<DialogTitle>Order Details</DialogTitle>
@@ -74,12 +91,49 @@ export function OrderDetailsModal({
 						</div>
 						<div>
 							<p className="font-medium text-sm">Status</p>
-							<StatusBadge status={order.status} />
+							<div className="flex items-center gap-2">
+								<Select
+									value={status}
+									onValueChange={(value) =>
+										setStatus(value as typeof order.status)
+									}
+								>
+									<SelectTrigger className="w-[140px]">
+										<SelectValue placeholder="Update status" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="pending">Pending</SelectItem>
+										<SelectItem value="processing">Processing</SelectItem>
+										<SelectItem value="completed">Completed</SelectItem>
+										<SelectItem value="cancelled">Cancelled</SelectItem>
+									</SelectContent>
+								</Select>
+								<Button
+									variant="secondary"
+									size="sm"
+									onClick={() => updateStatus({ orderId: order.id, status })}
+									disabled={status === order.status || isUpdating}
+									className="relative"
+									aria-label="Save status"
+									aria-live="polite"
+									aria-busy={isUpdating}
+								>
+									<LoadingSpinner
+										className={cn(
+											"-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-4 w-4 animate-spin",
+											isUpdating ? "opacity-100" : "opacity-0",
+										)}
+									/>
+									<span className={cn("text-sm", isUpdating && "opacity-0")}>
+										Save
+									</span>
+								</Button>
+							</div>
 						</div>
 						<div>
 							<p className="font-medium text-sm">Order Date</p>
 							<p className="text-gray-500 text-sm">
-								{new Date(order.createdAt).toLocaleDateString()}
+								{new Date(order.createdAt).toLocaleDateString("en-IN")}
 							</p>
 						</div>
 						<div>
@@ -88,6 +142,8 @@ export function OrderDetailsModal({
 								{Number(order.total).toLocaleString("en-US", {
 									minimumFractionDigits: 2,
 									maximumFractionDigits: 2,
+									style: "currency",
+									currency: "INR",
 								})}
 							</p>
 						</div>
@@ -120,6 +176,8 @@ export function OrderDetailsModal({
 														{item.price.toLocaleString("en-US", {
 															minimumFractionDigits: 2,
 															maximumFractionDigits: 2,
+															style: "currency",
+															currency: "INR",
 														})}
 													</TableCell>
 													<TableCell>
@@ -128,6 +186,8 @@ export function OrderDetailsModal({
 															{
 																minimumFractionDigits: 2,
 																maximumFractionDigits: 2,
+																style: "currency",
+																currency: "INR",
 															},
 														)}
 													</TableCell>
