@@ -2,6 +2,7 @@
 
 import type { Session } from "next-auth";
 import Image from "next/image";
+import Link from "next/link";
 
 import { SignOutButton } from "~/components/auth/signout-button";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
@@ -10,12 +11,15 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
+	DropdownMenuSeparator,
+	DropdownMenuGroup,
+	DropdownMenuLabel,
 } from "~/components/ui/dropdown-menu";
 
 export function UserDropDown({ session }: { session: Session }) {
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger>
+			<DropdownMenuTrigger className="rounded-full">
 				<Avatar className="h-10 w-10" key={session.user?.image}>
 					{session.user?.image && (
 						<Image
@@ -36,6 +40,17 @@ export function UserDropDown({ session }: { session: Session }) {
 				</Avatar>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-42">
+				<DropdownMenuLabel>My Account</DropdownMenuLabel>
+				<DropdownMenuSeparator />
+				<DropdownMenuGroup>
+					<DropdownMenuItem>
+						<Link href="/items">Items</Link>
+					</DropdownMenuItem>
+					<DropdownMenuItem>
+						<Link href="/orders">Orders</Link>
+					</DropdownMenuItem>
+				</DropdownMenuGroup>
+				<DropdownMenuSeparator />
 				<DropdownMenuItem>
 					<SignOutButton />
 				</DropdownMenuItem>

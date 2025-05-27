@@ -40,6 +40,8 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
+	items: many(items, { relationName: "user_items" }),
+	orders: many(orders, { relationName: "user_orders" }),
 }));
 
 export const accounts = createTable(
@@ -128,7 +130,7 @@ export const passwordResetTokensRelations = relations(
 	}),
 );
 
-export const itemsTable = createTable(
+export const items = createTable(
 	"items",
 	(d) => ({
 		id: d
@@ -141,15 +143,28 @@ export const itemsTable = createTable(
 		description: d.varchar({ length: 255 }),
 		isDeleted: d.boolean().notNull().default(false),
 		enabled: d.boolean().notNull().default(true),
+		userId: d
+			.varchar({ length: 255 })
+			.notNull()
+			.references(() => users.id),
+		createdAt: d
+			.timestamp({ mode: "date", withTimezone: true })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: d
+			.timestamp({ mode: "date", withTimezone: true })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
 	}),
 	(t) => [
 		index("t_name_idx").on(t.name),
 		index("t_enabled_idx").on(t.enabled),
 		index("t_items_is_deleted_idx").on(t.isDeleted),
+		index("t_items_user_id_idx").on(t.userId),
 	],
 );
 
-export const ordersTable = createTable(
+export const orders = createTable(
 	"orders",
 	(d) => ({
 		id: d
@@ -158,7 +173,18 @@ export const ordersTable = createTable(
 			.primaryKey()
 			.$defaultFn(() => createId()),
 		customerName: d.varchar({ length: 255 }).notNull(),
-		createdAt: d.timestamp().notNull().defaultNow(),
+		userId: d
+			.varchar({ length: 255 })
+			.notNull()
+			.references(() => users.id),
+		createdAt: d
+			.timestamp({ mode: "date", withTimezone: true })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: d
+			.timestamp({ mode: "date", withTimezone: true })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
 		deliveryCost: d
 			.numeric({ precision: 5, scale: 2 })
 			.notNull()
@@ -175,11 +201,7 @@ export const ordersTable = createTable(
 	],
 );
 
-export const ordersRelations = relations(ordersTable, ({ many }) => ({
-	orderItems: many(orderItemsTable, { relationName: "order_items" }),
-}));
-
-export const orderItemsTable = createTable(
+export const orderItems = createTable(
 	"order_items",
 	(d) => ({
 		orderId: d.varchar().notNull(),
@@ -189,13 +211,20 @@ export const orderItemsTable = createTable(
 	(t) => [primaryKey({ columns: [t.orderId, t.dessertId] })],
 );
 
-export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({
-	order: one(ordersTable, {
-		fields: [orderItemsTable.orderId],
-		references: [ordersTable.id],
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+	order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
+	dessert: one(items, {
+		fields: [orderItems.dessertId],
+		references: [items.id],
 	}),
-	dessert: one(itemsTable, {
-		fields: [orderItemsTable.dessertId],
-		references: [itemsTable.id],
-	}),
+}));
+
+export const itemsRelations = relations(items, ({ many, one }) => ({
+	orders: many(orderItems, { relationName: "order_items" }),
+	users: one(users, { fields: [items.userId], references: [users.id] }),
+}));
+
+export const ordersRelations = relations(orders, ({ many, one }) => ({
+	orderItems: many(orderItems, { relationName: "order_items" }),
+	users: one(users, { fields: [orders.userId], references: [users.id] }),
 }));

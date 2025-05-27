@@ -34,7 +34,7 @@ export default async function RootLayout({
 					<SessionProvider session={session}>
 						<>
 							<Navbar />
-							<div className="min-h-svh bg-gradient-to-b bg-primary-foreground/20 pt-[4.5rem] text-primary">
+							<div className="min-h-svh bg-gradient-to-b bg-primary-foreground/20 px-4 pt-[4.5rem] text-primary">
 								{children}
 							</div>
 							<Toaster richColors position="top-center" />
