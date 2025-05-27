@@ -1,12 +1,20 @@
 "use client";
 
-import { Badge } from "~/components/ui/badge";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "~/components/ui/dialog";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "~/components/ui/select";
 import {
 	Table,
 	TableBody,
@@ -20,41 +28,10 @@ import type { OrderItem } from "~/server/api/routers/orders";
 import type { orders } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "~/components/ui/select";
-import { Button } from "~/components/ui/button";
-import { useState } from "react";
 
 interface OrderDetailsModalProps {
 	order: typeof orders.$inferSelect;
 	onOpenChange: (open: boolean) => void;
-}
-
-const statusStyles = {
-	pending:
-		"bg-yellow-100 hover:bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500",
-	processing:
-		"bg-blue-100 hover:bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500",
-	completed:
-		"bg-green-100 hover:bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500",
-	cancelled:
-		"bg-red-100 hover:bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500",
-} as const;
-
-function StatusBadge({ status }: { status: keyof typeof statusStyles }) {
-	return (
-		<Badge
-			variant="secondary"
-			className={cn("capitalize", statusStyles[status])}
-		>
-			{status}
-		</Badge>
-	);
 }
 
 export function OrderDetailsModal({

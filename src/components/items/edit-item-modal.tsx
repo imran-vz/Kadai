@@ -13,6 +13,7 @@ import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { Textarea } from "~/components/ui/textarea";
 import type { items } from "~/server/db/schema";
 import { api } from "~/trpc/react";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 interface EditItemModalProps {
 	item: typeof items.$inferSelect;
@@ -26,6 +27,7 @@ export function EditItemModal({
 	onOpenChange,
 }: EditItemModalProps) {
 	const utils = api.useUtils();
+	const { modalStyle } = useMobileModal();
 
 	const editItem = api.items.update.useMutation({
 		onSuccess: () => {
@@ -53,7 +55,10 @@ export function EditItemModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent
+				className="max-h-[90vh] max-w-[90vw] overflow-hidden"
+				style={modalStyle}
+			>
 				<DialogHeader>
 					<DialogTitle>Edit Item</DialogTitle>
 				</DialogHeader>

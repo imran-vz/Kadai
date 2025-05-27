@@ -14,11 +14,12 @@ import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { Textarea } from "~/components/ui/textarea";
 import { api } from "~/trpc/react";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 export function AddItemModal() {
 	const [open, setOpen] = useState(false);
 	const utils = api.useUtils();
-
+	const { modalStyle } = useMobileModal();
 	const createItem = api.items.create.useMutation({
 		onSuccess: () => {
 			toast.success("Item created successfully");
@@ -47,7 +48,10 @@ export function AddItemModal() {
 			<DialogTrigger asChild>
 				<Button>Add Item</Button>
 			</DialogTrigger>
-			<DialogContent>
+			<DialogContent
+				className="max-h-[90vh] max-w-[90vw] overflow-hidden"
+				style={modalStyle}
+			>
 				<DialogHeader>
 					<DialogTitle>Add New Item</DialogTitle>
 				</DialogHeader>
