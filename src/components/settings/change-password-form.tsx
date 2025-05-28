@@ -17,6 +17,8 @@ import {
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 import { useState } from "react";
+import { LoadingSpinner } from "../ui/loading-spinner";
+import { cn } from "~/lib/utils";
 
 const changePasswordSchema = z
 	.object({
@@ -73,6 +75,7 @@ export function ChangePasswordForm() {
 								<div className="relative">
 									<Input
 										type={showCurrentPassword ? "text" : "password"}
+										autoComplete="current-password"
 										{...field}
 									/>
 									<Button
@@ -105,6 +108,7 @@ export function ChangePasswordForm() {
 								<div className="relative">
 									<Input
 										type={showNewPassword ? "text" : "password"}
+										autoComplete="new-password"
 										{...field}
 									/>
 									<Button
@@ -137,6 +141,7 @@ export function ChangePasswordForm() {
 								<div className="relative">
 									<Input
 										type={showConfirmPassword ? "text" : "password"}
+										autoComplete="new-password"
 										{...field}
 									/>
 									<Button
@@ -159,11 +164,17 @@ export function ChangePasswordForm() {
 					)}
 				/>
 
-				<Button type="submit" disabled={changePassword.isPending}>
+				<Button
+					type="submit"
+					className="relative"
+					disabled={changePassword.isPending}
+				>
 					{changePassword.isPending ? (
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						<LoadingSpinner className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-4 w-4" />
 					) : null}
-					Change Password
+					<span className={cn(changePassword.isPending && "invisible")}>
+						Change Password
+					</span>
 				</Button>
 			</form>
 		</Form>

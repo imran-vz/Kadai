@@ -1,8 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Loader2, Upload } from "lucide-react";
-import type { DefaultSession } from "next-auth";
+import { ImageIcon, Upload } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,6 +20,8 @@ import {
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
+import { LoadingSpinner } from "../ui/loading-spinner";
+import { cn } from "~/lib/utils";
 
 const settingsSchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),
@@ -31,7 +32,6 @@ const settingsSchema = z.object({
 
 export function SettingsForm() {
 	const { data: sessionData, update } = useSession();
-	const [isLoading, setIsLoading] = useState(false);
 	const [profilePreview, setProfilePreview] = useState<string | null>(
 		sessionData?.user.image || null,
 	);
@@ -95,7 +95,6 @@ export function SettingsForm() {
 	};
 
 	const onSubmit = async (data: z.infer<typeof settingsSchema>) => {
-		setIsLoading(true);
 		try {
 			await updateCompany.mutateAsync(
 				{
@@ -126,8 +125,6 @@ export function SettingsForm() {
 		} catch (error) {
 			console.error(error);
 			toast.error("Something went wrong");
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -174,9 +171,9 @@ export function SettingsForm() {
 										>
 											{uploadMutation.isPending &&
 											uploadMutation.variables?.type === "profile" ? (
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<LoadingSpinner className="h-4 w-4" />
 											) : (
-												<Upload className="mr-2 h-4 w-4" />
+												<Upload className="h-4 w-4" />
 											)}
 											Upload Image
 										</Button>
@@ -228,9 +225,9 @@ export function SettingsForm() {
 										>
 											{uploadMutation.isPending &&
 											uploadMutation.variables?.type === "logo" ? (
-												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												<LoadingSpinner className="h-4 w-4" />
 											) : (
-												<Upload className="mr-2 h-4 w-4" />
+												<Upload className="h-4 w-4" />
 											)}
 											Upload Logo
 										</Button>
@@ -273,9 +270,17 @@ export function SettingsForm() {
 					/>
 				</div>
 
-				<Button type="submit" disabled={isLoading}>
-					{isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-					Save Changes
+				<Button
+					type="submit"
+					className="relative"
+					disabled={updateCompany.isPending}
+				>
+					{updateCompany.isPending ? (
+						<LoadingSpinner className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-4 w-4" />
+					) : null}
+					<span className={cn(updateCompany.isPending && "invisible")}>
+						Save Changes
+					</span>
 				</Button>
 			</form>
 		</Form>
