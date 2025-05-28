@@ -25,7 +25,7 @@ export const users = createTable("user", (d) => ({
 			withTimezone: true,
 		})
 		.default(sql`CURRENT_TIMESTAMP`),
-	image: d.varchar({ length: 255 }),
+	image: d.varchar({ length: 512 }),
 	password: d.varchar({ length: 255 }),
 	createdAt: d
 		.timestamp({ mode: "date", withTimezone: true })
@@ -36,12 +36,9 @@ export const users = createTable("user", (d) => ({
 		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),
 	isDeleted: d.boolean().notNull().default(false),
-}));
-
-export const usersRelations = relations(users, ({ many }) => ({
-	accounts: many(accounts),
-	items: many(items, { relationName: "user_items" }),
-	orders: many(orders, { relationName: "user_orders" }),
+	companyName: d.varchar({ length: 255 }),
+	companyAddress: d.varchar({ length: 512 }),
+	companyLogo: d.varchar({ length: 512 }),
 }));
 
 export const accounts = createTable(
@@ -68,10 +65,6 @@ export const accounts = createTable(
 	],
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-	user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}));
-
 export const sessions = createTable(
 	"session",
 	(d) => ({
@@ -84,10 +77,6 @@ export const sessions = createTable(
 	}),
 	(t) => [index("t_user_id_idx").on(t.userId)],
 );
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-	user: one(users, { fields: [sessions.userId], references: [users.id] }),
-}));
 
 export const verificationTokens = createTable(
 	"verification_token",
@@ -117,16 +106,6 @@ export const passwordResetTokens = createTable(
 			.timestamp({ mode: "date", withTimezone: true })
 			.notNull()
 			.default(sql`CURRENT_TIMESTAMP`),
-	}),
-);
-
-export const passwordResetTokensRelations = relations(
-	passwordResetTokens,
-	({ one }) => ({
-		user: one(users, {
-			fields: [passwordResetTokens.userId],
-			references: [users.id],
-		}),
 	}),
 );
 
@@ -219,6 +198,26 @@ export const orderItems = createTable(
 	(t) => [primaryKey({ columns: [t.orderId, t.itemId] })],
 );
 
+/* ---------------------------- Relations ---------------------------- */
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+	user: one(users, { fields: [accounts.userId], references: [users.id] }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const passwordResetTokensRelations = relations(
+	passwordResetTokens,
+	({ one }) => ({
+		user: one(users, {
+			fields: [passwordResetTokens.userId],
+			references: [users.id],
+		}),
+	}),
+);
+
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 	order: one(orders, {
 		fields: [orderItems.orderId],
@@ -240,4 +239,10 @@ export const ordersRelations = relations(orders, ({ many, one }) => ({
 export const itemsRelations = relations(items, ({ many, one }) => ({
 	orderItems: many(orderItems, { relationName: "item__order_items" }),
 	user: one(users, { fields: [items.userId], references: [users.id] }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+	accounts: many(accounts),
+	items: many(items),
+	orders: many(orders),
 }));

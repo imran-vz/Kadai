@@ -27,7 +27,8 @@ export function UserDropDown({ session }: { session: Session }) {
 							loading="eager"
 							alt={session.user?.name || ""}
 							width={40}
-							height={40}
+							height={80}
+							className="aspect-square h-10 w-10 object-cover"
 						/>
 					)}
 					<AvatarFallback>
@@ -50,6 +51,10 @@ export function UserDropDown({ session }: { session: Session }) {
 						<Link href="/orders">Orders</Link>
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
+				<DropdownMenuSeparator />
+				<DropdownMenuItem asChild>
+					<Link href="/settings">Settings</Link>
+				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem>
 					<SignOutButton />

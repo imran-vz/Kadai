@@ -17,6 +17,9 @@ export const env = createEnv({
 			.default("development"),
 		AUTH_GOOGLE_ID: z.string(),
 		AUTH_GOOGLE_SECRET: z.string(),
+		BLOB_READ_WRITE_TOKEN: z.string(),
+		AUTH_JWT_MAX_AGE: z.number().optional().default(7200),
+		AUTH_SESSION_MAX_AGE: z.number().optional().default(7200),
 	},
 
 	/**
@@ -39,6 +42,9 @@ export const env = createEnv({
 		DATABASE_URL: process.env.DATABASE_URL,
 		NODE_ENV: process.env.NODE_ENV,
 		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+		BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
+		AUTH_JWT_MAX_AGE: process.env.AUTH_JWT_MAX_AGE,
+		AUTH_SESSION_MAX_AGE: process.env.AUTH_SESSION_MAX_AGE,
 	},
 	/**
 	 * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
