@@ -15,8 +15,6 @@ export const companyRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				console.log(" :28 | .mutation | input:", input);
-				console.log(" :28 | .mutation | ctx.session.user.id:", ctx.session);
 				await ctx.db
 					.update(users)
 					.set(input)
