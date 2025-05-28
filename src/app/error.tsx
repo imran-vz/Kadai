@@ -16,7 +16,7 @@ export default function error({
 	}, [error]);
 
 	return (
-		<div className="flex min-h-[calc(100vh-65px)] flex-col items-center justify-center gap-4 text-center">
+		<div className="flex min-h-[calc(100vh-155px)] flex-col items-center justify-center gap-4 text-center">
 			<svg
 				className="h-24 w-24 text-primary"
 				fill="none"
