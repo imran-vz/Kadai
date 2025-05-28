@@ -9,6 +9,12 @@ import { ForgotPasswordEmail } from "~/emails/forgot-password";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { passwordResetTokens, users } from "~/server/db/schema";
 
+const signupSchema = z.object({
+	email: z.string().email(),
+	password: z.string().min(8),
+	name: z.string().min(1),
+});
+
 export const authRouter = createTRPCRouter({
 	forgotPassword: publicProcedure
 		.input(z.object({ email: z.string().email() }))
@@ -75,5 +81,36 @@ export const authRouter = createTRPCRouter({
 				.where(eq(passwordResetTokens.token, input.token));
 
 			return { success: true };
+		}),
+
+	signup: publicProcedure
+		.input(signupSchema)
+		.mutation(async ({ ctx, input }) => {
+			try {
+				const salt = await genSalt(10);
+				const hashedPassword = await hash(input.password, salt);
+
+				await ctx.db.insert(users).values({
+					email: input.email.toLowerCase(),
+					password: hashedPassword,
+					name: input.name,
+				});
+
+				return { success: true };
+			} catch (error) {
+				// Check if error is due to duplicate email
+				if (error instanceof Error && error.message.includes("duplicate key")) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Email already exists",
+					});
+				}
+
+				console.error(error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Something went wrong",
+				});
+			}
 		}),
 });
