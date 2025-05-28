@@ -1,17 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, GalleryVerticalEnd, Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { resetPassword } from "~/actions/password-reset";
-import { cn } from "~/lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "~/components/ui/button";
 import {
 	Form,
 	FormControl,
@@ -19,136 +13,149 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import { LoadingSpinner } from "~/components/ui/loading-spinner";
+import { api } from "~/trpc/react";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
-const passwordRegex =
-	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const resetPasswordSchema = z
+	.object({
+		password: z.string().min(8, "Password must be at least 8 characters"),
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ["confirmPassword"],
+	});
 
-const resetPasswordSchema = z.object({
-	password: z
-		.string()
-		.min(8)
-		.max(30)
-		.superRefine((val, ctx) => {
-			if (!passwordRegex.test(val)) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message:
-						"Password must contain at least 8 characters, one uppercase letter, one lowercase letter, and one special character",
-				});
-			}
-		}),
-});
-
-export function ResetPasswordForm({
-	className,
-	...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export default function ResetPasswordPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
-	const [isLoading, setIsLoading] = useState(false);
-	const [fieldType, setFieldType] = useState<"text" | "password">("password");
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+	const resetPassword = api.auth.resetPassword.useMutation({
+		onSuccess: () => {
+			toast.success("Password reset successful");
+			router.push("/login");
+		},
+		onError: (error) => {
+			toast.error(error.message || "Something went wrong. Please try again.");
+		},
+	});
 
 	const form = useForm<z.infer<typeof resetPasswordSchema>>({
 		resolver: zodResolver(resetPasswordSchema),
 		defaultValues: {
 			password: "",
+			confirmPassword: "",
 		},
 	});
 
-	const onSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
-		if (!token) {
-			toast.error("Invalid reset token");
-			return;
-		}
+	if (!token) {
+		return (
+			<div className="text-center">
+				<h1 className="font-bold text-2xl">Invalid Reset Link</h1>
+				<p className="text-gray-500">
+					This password reset link is invalid or has expired.
+				</p>
+			</div>
+		);
+	}
 
-		setIsLoading(true);
-		const formData = new FormData();
-		formData.append("token", token);
-		formData.append("password", data.password);
-
-		try {
-			const result = await resetPassword(formData);
-			if (result.error) {
-				toast.error(result.error);
-				return;
-			}
-			toast.success("Password reset successfully");
-			router.push("/login");
-		} catch (error) {
-			console.error(error);
-			toast.error("Something went wrong");
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
+		resetPassword.mutate({
+			token: token as string,
+			password: values.password,
+		});
+	}
 
 	return (
-		<div className={cn("flex flex-col gap-6", className)} {...props}>
+		<div className="mx-auto max-w-[350px] space-y-6">
+			<div className="space-y-2 text-center">
+				<h1 className="font-bold text-2xl">Reset Password</h1>
+				<p className="text-gray-500">Enter your new password below.</p>
+			</div>
 			<Form {...form}>
-				<form onSubmit={form.handleSubmit(onSubmit)}>
-					<div className="flex flex-col gap-6">
-						<div className="flex flex-col items-center gap-2">
-							<Link
-								href="/"
-								className="flex flex-col items-center gap-2 font-medium"
-							>
-								<div className="flex h-8 w-8 items-center justify-center rounded-lg">
-									<GalleryVerticalEnd className="size-6" />
-								</div>
-								<span className="sr-only">Kadai</span>
-							</Link>
-							<h1 className="font-bold text-xl">Reset your password</h1>
-							<div className="text-center text-sm">
-								Enter your new password below.
-							</div>
-						</div>
-						<div className="flex flex-col gap-6">
-							<FormField
-								control={form.control}
-								name="password"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>New Password</FormLabel>
-										<FormControl>
-											<div className="relative">
-												<Input
-													id="password"
-													type={fieldType}
-													required
-													placeholder="********"
-													{...field}
-												/>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="-translate-y-1/2 absolute top-1/2 right-2"
-													onClick={() =>
-														setFieldType(
-															fieldType === "text" ? "password" : "text",
-														)
-													}
-												>
-													{fieldType === "text" ? <Eye /> : <EyeOff />}
-												</Button>
-											</div>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<Button type="submit" className="w-full" disabled={isLoading}>
-								{isLoading ? (
-									<Loader2 className="size-4 animate-spin" />
-								) : (
-									"Reset password"
-								)}
-							</Button>
-						</div>
-					</div>
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<FormField
+						control={form.control}
+						name="password"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>New Password</FormLabel>
+								<FormControl>
+									<div className="relative">
+										<Input
+											type={showPassword ? "text" : "password"}
+											{...field}
+										/>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="absolute top-0 right-0 h-full px-3"
+											onClick={() => setShowPassword(!showPassword)}
+										>
+											{showPassword ? (
+												<EyeOff className="h-4 w-4" />
+											) : (
+												<Eye className="h-4 w-4" />
+											)}
+										</Button>
+									</div>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="confirmPassword"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Confirm Password</FormLabel>
+								<FormControl>
+									<div className="relative">
+										<Input
+											type={showConfirmPassword ? "text" : "password"}
+											{...field}
+										/>
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											className="absolute top-0 right-0 h-full px-3"
+											onClick={() =>
+												setShowConfirmPassword(!showConfirmPassword)
+											}
+										>
+											{showConfirmPassword ? (
+												<EyeOff className="h-4 w-4" />
+											) : (
+												<Eye className="h-4 w-4" />
+											)}
+										</Button>
+									</div>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<Button
+						type="submit"
+						className="w-full"
+						disabled={resetPassword.isPending}
+					>
+						{resetPassword.isPending ? (
+							<LoadingSpinner className="h-4 w-4" />
+						) : (
+							"Reset Password"
+						)}
+					</Button>
 				</form>
 			</Form>
 		</div>
