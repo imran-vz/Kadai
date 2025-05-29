@@ -23,7 +23,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
-import { cn } from "~/lib/utils";
+import { cn, formatCurrency } from "~/lib/utils";
 import type { OrderItem } from "~/server/api/routers/orders";
 import type { orders } from "~/server/db/schema";
 import { api } from "~/trpc/react";
@@ -53,6 +53,12 @@ export function OrderDetailsModal({
 			},
 		});
 
+	const subtotal =
+		orderDetails?.items.reduce(
+			(acc, item) => acc + item.price * item.quantity,
+			0,
+		) ?? 0;
+
 	return (
 		<Dialog open={!!order.id} onOpenChange={onOpenChange}>
 			<DialogContent className="max-h-[90vh] max-w-[90vw] overflow-hidden">
@@ -63,11 +69,11 @@ export function OrderDetailsModal({
 				<div className="mt-4 space-y-4">
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<p className="font-medium text-sm">Customer Name</p>
-							<p className="text-gray-500 text-sm">{order.customerName}</p>
+							<p className="text-sm font-medium">Customer Name</p>
+							<p className="text-sm text-gray-500">{order.customerName}</p>
 						</div>
 						<div>
-							<p className="font-medium text-sm">Status</p>
+							<p className="text-sm font-medium">Status</p>
 							<div className="flex items-center gap-2">
 								<Select
 									value={status}
@@ -108,26 +114,32 @@ export function OrderDetailsModal({
 							</div>
 						</div>
 						<div>
-							<p className="font-medium text-sm">Order Date</p>
-							<p className="text-gray-500 text-sm">
+							<p className="text-sm font-medium">Order Date</p>
+							<p className="text-sm text-gray-500">
 								{new Date(order.createdAt).toLocaleDateString("en-IN")}
 							</p>
 						</div>
 						<div>
-							<p className="font-medium text-sm">Total</p>
-							<p className="text-gray-500 text-sm">
-								{Number(order.total).toLocaleString("en-US", {
-									minimumFractionDigits: 2,
-									maximumFractionDigits: 2,
-									style: "currency",
-									currency: "INR",
-								})}
-							</p>
+							<p className="text-sm font-medium">Order Summary</p>
+							<div className="space-y-1 text-sm text-gray-500">
+								<div className="flex justify-between">
+									<span>Subtotal</span>
+									<span>{formatCurrency(subtotal)}</span>
+								</div>
+								<div className="flex justify-between">
+									<span>Delivery</span>
+									<span>{formatCurrency(Number(order.deliveryCost))}</span>
+								</div>
+								<div className="flex justify-between border-t pt-1 font-medium text-foreground">
+									<span>Total</span>
+									<span>{formatCurrency(Number(order.total))}</span>
+								</div>
+							</div>
 						</div>
 					</div>
 
 					<div>
-						<h3 className="mb-2 font-medium text-sm">Order Items</h3>
+						<h3 className="mb-2 text-sm font-medium">Order Items</h3>
 						{isLoading ? (
 							<div className="flex justify-center py-4">
 								<LoadingSpinner className="h-6 w-6 animate-spin text-primary" />
@@ -149,24 +161,9 @@ export function OrderDetailsModal({
 												<TableRow key={item.itemId}>
 													<TableCell>{item.name}</TableCell>
 													<TableCell>{item.quantity}</TableCell>
+													<TableCell>{formatCurrency(item.price)}</TableCell>
 													<TableCell>
-														{item.price.toLocaleString("en-US", {
-															minimumFractionDigits: 2,
-															maximumFractionDigits: 2,
-															style: "currency",
-															currency: "INR",
-														})}
-													</TableCell>
-													<TableCell>
-														{(item.price * item.quantity).toLocaleString(
-															"en-US",
-															{
-																minimumFractionDigits: 2,
-																maximumFractionDigits: 2,
-																style: "currency",
-																currency: "INR",
-															},
-														)}
+														{formatCurrency(item.price * item.quantity)}
 													</TableCell>
 												</TableRow>
 											))}

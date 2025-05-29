@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { items, orderItems, orders } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
 
 export type OrderItem = {
 	itemId: string;
@@ -72,64 +73,52 @@ export const ordersRouter = createTRPCRouter({
 		.input(
 			z.object({
 				customerName: z.string(),
+				deliveryCost: z.number().default(0),
 				items: z.array(
 					z.object({
 						itemId: z.string(),
-						quantity: z.number().int().positive(),
+						quantity: z.number(),
 					}),
 				),
+				total: z.number(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			try {
-				if (!ctx.session.user.id) {
-					throw new Error("Unauthorized");
-				}
-
-				// Get all items to calculate total
-				const orderItemsData = await ctx.db.query.items.findMany({
-					where: and(
-						eq(items.userId, ctx.session.user.id),
-						eq(items.isDeleted, false),
-					),
+			if (input.items.length === 0) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Order must contain at least one item",
 				});
+			}
 
-				const itemsMap = new Map(orderItemsData.map((item) => [item.id, item]));
-
-				let total = 0;
-				for (const item of input.items) {
-					const itemData = itemsMap.get(item.itemId);
-					if (!itemData) {
-						throw new Error(`Item ${item.itemId} not found`);
-					}
-					total += Number(itemData.price) * item.quantity;
-				}
-
-				// Create order
-				const order = await ctx.db
+			const order = await ctx.db.transaction(async (tx) => {
+				const [order] = await tx
 					.insert(orders)
 					.values({
 						customerName: input.customerName,
 						userId: ctx.session.user.id,
-						total: total.toString(),
+						deliveryCost: input.deliveryCost.toFixed(2),
+						total: input.total.toFixed(2),
 						status: "pending",
 					})
 					.returning();
 
-				// Create order items
-				await ctx.db.insert(orderItems).values(
+				if (!order) {
+					throw new Error("Failed to create order");
+				}
+
+				await tx.insert(orderItems).values(
 					input.items.map((item) => ({
-						orderId: order[0]?.id || "",
+						orderId: order.id,
 						itemId: item.itemId,
 						quantity: item.quantity,
 					})),
 				);
 
-				return order[0];
-			} catch (error) {
-				console.error(error);
-				throw new Error("Failed to create order");
-			}
+				return order;
+			});
+
+			return order;
 		}),
 
 	updateStatus: protectedProcedure
