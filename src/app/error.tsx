@@ -14,9 +14,6 @@ export default function error({
 	useEffect(() => {
 		// Log the error to an error reporting service
 		console.error(error);
-		if (String(error.message).toUpperCase() === "UNAUTHORIZED") {
-			window.location.href = "/login";
-		}
 	}, [error]);
 
 	if (String(error.message).toUpperCase() === "UNAUTHORIZED") {
