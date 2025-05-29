@@ -6,7 +6,7 @@ import { DataTable } from "~/components/ui/data-table";
 import { api } from "~/trpc/react";
 
 export default function ItemsPage() {
-	const { data: items, error } = api.items.getAll.useQuery();
+	const [items, { error }] = api.items.getAll.useSuspenseQuery();
 
 	if (error) {
 		return <div>Error: {error.message}</div>;

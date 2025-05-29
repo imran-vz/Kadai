@@ -4,7 +4,7 @@ import { OrdersTable } from "~/components/orders/columns";
 import { api } from "~/trpc/react";
 
 export default function OrdersPage() {
-	const { data: orders, error } = api.orders.getAll.useQuery();
+	const [orders, { error }] = api.orders.getAll.useSuspenseQuery();
 
 	if (error) {
 		return <div>Error: {error.message}</div>;

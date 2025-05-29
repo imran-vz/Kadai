@@ -1,8 +1,12 @@
-import { api } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 import OrdersPage from "./client";
 
 export default function page() {
 	void api.orders.getAll.prefetch();
 
-	return <OrdersPage />;
+	return (
+		<HydrateClient>
+			<OrdersPage />
+		</HydrateClient>
+	);
 }

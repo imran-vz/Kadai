@@ -9,7 +9,7 @@ async function main() {
 	await db.delete(orderItems);
 	await db.delete(orders);
 	await db.delete(items);
-	const testUserId = "ac8069b5-e7b2-4d2a-b44b-042c7536d38a"; // Replace this with a real user ID
+	const testUserId = "pxl3kvpuxoewqsx1oolsfugd"; // Replace this with a real user ID
 
 	// Seed items
 	const itemsData = [
