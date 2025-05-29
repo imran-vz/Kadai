@@ -9,8 +9,6 @@ export const companyRouter = createTRPCRouter({
 			z.object({
 				companyName: z.string().optional(),
 				companyAddress: z.string().optional(),
-				image: z.string().optional(),
-				companyLogo: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {

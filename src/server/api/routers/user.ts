@@ -1,8 +1,9 @@
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { eq } from "drizzle-orm";
-import { users } from "~/server/db/schema";
+import { TRPCError } from "@trpc/server";
 import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { users } from "~/server/db/schema";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
 	changePassword: protectedProcedure
@@ -41,5 +42,33 @@ export const userRouter = createTRPCRouter({
 				.where(eq(users.id, ctx.session.user.id));
 
 			return { success: true };
+		}),
+
+	updateProfilePhoto: protectedProcedure
+		.input(z.object({ imageUrl: z.string().url() }))
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db
+				.update(users)
+				.set({ image: input.imageUrl })
+				.where(eq(users.id, ctx.session.user.id));
+
+			return {
+				success: true,
+				url: input.imageUrl,
+			};
+		}),
+
+	updateCompanyLogo: protectedProcedure
+		.input(z.object({ imageUrl: z.string().url() }))
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db
+				.update(users)
+				.set({ companyLogo: input.imageUrl })
+				.where(eq(users.id, ctx.session.user.id));
+
+			return {
+				success: true,
+				url: input.imageUrl,
+			};
 		}),
 });

@@ -26,8 +26,6 @@ import { cn } from "~/lib/utils";
 const settingsSchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),
 	companyAddress: z.string().min(1, "Company address is required"),
-	image: z.string().optional(),
-	companyLogo: z.string().optional(),
 });
 
 export function SettingsForm() {
@@ -45,8 +43,6 @@ export function SettingsForm() {
 		defaultValues: {
 			companyName: sessionData?.user.companyName || "",
 			companyAddress: sessionData?.user.companyAddress || "",
-			image: sessionData?.user.image || "",
-			companyLogo: sessionData?.user.companyLogo || "",
 		},
 	});
 
@@ -68,7 +64,8 @@ export function SettingsForm() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Upload failed");
+				const error = await response.text();
+				throw new Error(error);
 			}
 
 			return response.json();
@@ -76,16 +73,25 @@ export function SettingsForm() {
 		onSuccess: (data, variables) => {
 			if (variables.type === "profile") {
 				setProfilePreview(data.url);
-				form.setValue("image", data.url);
+				update({
+					user: {
+						...(sessionData ? sessionData.user : {}),
+						image: data.url,
+					},
+				});
 			} else {
 				setLogoPreview(data.url);
-				form.setValue("companyLogo", data.url);
+				update({
+					user: {
+						...(sessionData ? sessionData.user : {}),
+						companyLogo: data.url,
+					},
+				});
 			}
-			toast.success("Image uploaded successfully");
+			toast.success(data.message);
 		},
 		onError: (error) => {
-			console.error(error);
-			toast.error("Failed to upload image");
+			toast.error(error.message);
 		},
 	});
 
@@ -100,8 +106,6 @@ export function SettingsForm() {
 				{
 					companyName: data.companyName,
 					companyAddress: data.companyAddress,
-					image: data.image,
-					companyLogo: data.companyLogo,
 				},
 				{
 					onError(error) {
@@ -115,8 +119,6 @@ export function SettingsForm() {
 								...(sessionData ? sessionData.user : {}),
 								companyName: data.companyName,
 								companyAddress: data.companyAddress,
-								image: data.image,
-								companyLogo: data.companyLogo,
 							},
 						});
 					},
@@ -133,110 +135,90 @@ export function SettingsForm() {
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 				<div className="grid grid-cols-1 gap-8 md:grid-cols-2">
 					{/* Profile Image Upload */}
-					<FormField
-						control={form.control}
-						name="image"
-						render={() => (
-							<FormItem>
-								<FormLabel>Profile Image</FormLabel>
-								<FormControl>
-									<div className="flex flex-col items-center gap-4">
-										<div className="relative h-32 w-32 overflow-hidden rounded-full bg-muted">
-											{profilePreview ? (
-												<Image
-													src={profilePreview}
-													alt="Profile"
-													fill
-													className="object-cover"
-												/>
-											) : (
-												<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
-											)}
-										</div>
-										<Input
-											type="file"
-											accept="image/*"
-											className="hidden"
-											id="image"
-											onChange={(e) => {
-												const file = e.target.files?.[0];
-												if (file) handleImageUpload(file, "profile");
-											}}
-										/>
-										<Button
-											type="button"
-											variant="outline"
-											onClick={() => document.getElementById("image")?.click()}
-											disabled={uploadMutation.isPending}
-										>
-											{uploadMutation.isPending &&
-											uploadMutation.variables?.type === "profile" ? (
-												<LoadingSpinner className="h-4 w-4" />
-											) : (
-												<Upload className="h-4 w-4" />
-											)}
-											Upload Image
-										</Button>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div>
+						<FormLabel>Profile Image</FormLabel>
+						<div className="flex flex-col items-center gap-4">
+							<div className="relative h-32 w-32 overflow-hidden rounded-full bg-muted">
+								{profilePreview ? (
+									<Image
+										src={profilePreview}
+										alt="Profile"
+										fill
+										className="object-cover"
+									/>
+								) : (
+									<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+								)}
+							</div>
+							<Input
+								type="file"
+								accept="image/*"
+								className="hidden"
+								id="image"
+								onChange={(e) => {
+									const file = e.target.files?.[0];
+									if (file) handleImageUpload(file, "profile");
+								}}
+							/>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => document.getElementById("image")?.click()}
+								disabled={uploadMutation.isPending}
+							>
+								{uploadMutation.isPending &&
+								uploadMutation.variables?.type === "profile" ? (
+									<LoadingSpinner className="h-4 w-4" />
+								) : (
+									<Upload className="h-4 w-4" />
+								)}
+								Upload Image
+							</Button>
+						</div>
+					</div>
 
 					{/* Company Logo Upload */}
-					<FormField
-						control={form.control}
-						name="companyLogo"
-						render={() => (
-							<FormItem>
-								<FormLabel>Company Logo</FormLabel>
-								<FormControl>
-									<div className="flex flex-col items-center gap-4">
-										<div className="relative h-32 w-32 overflow-hidden rounded-lg bg-muted">
-											{logoPreview ? (
-												<Image
-													src={logoPreview}
-													alt="Company Logo"
-													fill
-													className="object-contain"
-												/>
-											) : (
-												<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
-											)}
-										</div>
-										<Input
-											type="file"
-											accept="image/*"
-											className="hidden"
-											id="companyLogo"
-											onChange={(e) => {
-												const file = e.target.files?.[0];
-												if (file) handleImageUpload(file, "logo");
-											}}
-										/>
-										<Button
-											type="button"
-											variant="outline"
-											onClick={() =>
-												document.getElementById("companyLogo")?.click()
-											}
-											disabled={uploadMutation.isPending}
-										>
-											{uploadMutation.isPending &&
-											uploadMutation.variables?.type === "logo" ? (
-												<LoadingSpinner className="h-4 w-4" />
-											) : (
-												<Upload className="h-4 w-4" />
-											)}
-											Upload Logo
-										</Button>
-									</div>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
+					<div>
+						<FormLabel>Company Logo</FormLabel>
+						<div className="flex flex-col items-center gap-4">
+							<div className="relative h-32 w-32 overflow-hidden rounded-lg bg-muted">
+								{logoPreview ? (
+									<Image
+										src={logoPreview}
+										alt="Company Logo"
+										fill
+										className="object-contain"
+									/>
+								) : (
+									<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+								)}
+							</div>
+							<Input
+								type="file"
+								accept="image/*"
+								className="hidden"
+								id="companyLogo"
+								onChange={(e) => {
+									const file = e.target.files?.[0];
+									if (file) handleImageUpload(file, "logo");
+								}}
+							/>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => document.getElementById("companyLogo")?.click()}
+								disabled={uploadMutation.isPending}
+							>
+								{uploadMutation.isPending &&
+								uploadMutation.variables?.type === "logo" ? (
+									<LoadingSpinner className="h-4 w-4" />
+								) : (
+									<Upload className="h-4 w-4" />
+								)}
+								Upload Logo
+							</Button>
+						</div>
+					</div>
 				</div>
 
 				{/* Company Details */}

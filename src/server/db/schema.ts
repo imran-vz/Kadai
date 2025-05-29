@@ -198,6 +198,29 @@ export const orderItems = createTable(
 	(t) => [primaryKey({ columns: [t.orderId, t.itemId] })],
 );
 
+export const imageUpdateLogs = createTable("image_update_logs", (d) => ({
+	id: d
+		.varchar({ length: 255 })
+		.primaryKey()
+		.notNull()
+		.$defaultFn(() => createId()),
+	userId: d
+		.varchar({ length: 255 })
+		.notNull()
+		.references(() => users.id),
+	type: d
+		.varchar("type", {
+			enum: ["profile", "company_logo"],
+		})
+		.notNull(),
+	createdAt: d
+		.timestamp({ mode: "date", withTimezone: true })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+}));
+
+export type ImageUpdateLog = typeof imageUpdateLogs.$inferSelect;
+
 /* ---------------------------- Relations ---------------------------- */
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
