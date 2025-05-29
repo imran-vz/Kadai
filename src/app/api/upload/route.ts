@@ -5,6 +5,7 @@ import { db } from "~/server/db";
 import { imageUpdateLogs, users } from "~/server/db/schema";
 import { and, count, eq, gte } from "drizzle-orm";
 import { auth } from "~/server/auth";
+import { env } from "~/env";
 
 export async function POST(req: Request) {
 	try {
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
 				),
 			);
 
-		if (!updateCount || updateCount.count >= 2) {
+		if (!updateCount || updateCount.count >= env.MAX_IMAGE_UPLOADS_PER_DAY) {
 			return new NextResponse(
 				`You can only update your ${
 					type === "profile" ? "profile photo" : "company logo"
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
 			.set(type === "profile" ? { image: blob.url } : { companyLogo: blob.url })
 			.where(eq(users.id, session.user.id));
 
-		const updatesLeft = 2 - (updateCount.count + 1);
+		const updatesLeft = env.MAX_IMAGE_UPLOADS_PER_DAY - (updateCount.count + 1);
 
 		return NextResponse.json({
 			url: blob.url,

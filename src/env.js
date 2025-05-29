@@ -18,9 +18,10 @@ export const env = createEnv({
 		AUTH_GOOGLE_ID: z.string(),
 		AUTH_GOOGLE_SECRET: z.string(),
 		BLOB_READ_WRITE_TOKEN: z.string(),
-		AUTH_JWT_MAX_AGE: z.number().optional().default(7200),
-		AUTH_SESSION_MAX_AGE: z.number().optional().default(7200),
+		AUTH_JWT_MAX_AGE: z.coerce.number().optional().default(7200),
+		AUTH_SESSION_MAX_AGE: z.coerce.number().optional().default(7200),
 		RESEND_API_KEY: z.string(),
+		MAX_IMAGE_UPLOADS_PER_DAY: z.coerce.number().optional().default(2),
 	},
 
 	/**
@@ -47,6 +48,7 @@ export const env = createEnv({
 		AUTH_JWT_MAX_AGE: process.env.AUTH_JWT_MAX_AGE,
 		AUTH_SESSION_MAX_AGE: process.env.AUTH_SESSION_MAX_AGE,
 		RESEND_API_KEY: process.env.RESEND_API_KEY,
+		MAX_IMAGE_UPLOADS_PER_DAY: process.env.MAX_IMAGE_UPLOADS_PER_DAY,
 	},
 	/**
 	 * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

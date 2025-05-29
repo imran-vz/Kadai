@@ -128,6 +128,15 @@ export function SettingsForm() {
 	};
 
 	const handleDeleteImage = (type: "profile" | "logo") => {
+		if (type === "profile") {
+			setProfilePreview(null);
+			const input = document.getElementById("image") as HTMLInputElement;
+			if (input) input.value = "";
+		} else {
+			setLogoPreview(null);
+			const input = document.getElementById("companyLogo") as HTMLInputElement;
+			if (input) input.value = "";
+		}
 		deleteImage.mutate(type);
 	};
 
@@ -181,37 +190,50 @@ export function SettingsForm() {
 											className="object-cover transition-opacity group-hover:opacity-50"
 										/>
 									) : (
-										<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+										<ImageIcon
+											className={cn(
+												"-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground",
+												uploadMutation.isPending &&
+													uploadMutation.variables?.type === "profile" &&
+													"opacity-50",
+											)}
+										/>
 									)}
 
-									<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex gap-2">
-										<Button
-											type="button"
-											variant="destructive"
-											size="icon"
-											className={cn(
-												"sm:invisible sm:group-hover:visible",
-												!profilePreview && "hidden",
-											)}
-											onClick={() => handleDeleteImage("profile")}
-										>
-											<Trash2 className="size-4" />
-										</Button>
-										<Button
-											type="button"
-											variant="outline"
-											size="icon"
-											className="sm:invisible sm:group-hover:visible"
-											onClick={() => document.getElementById("image")?.click()}
-											disabled={uploadMutation.isPending}
-										>
-											{uploadMutation.isPending &&
-											uploadMutation.variables?.type === "profile" ? (
-												<LoadingSpinner className="h-4 w-4" />
-											) : (
-												<Upload className="h-4 w-4" />
-											)}
-										</Button>
+									<div className="absolute inset-0 flex items-center justify-center gap-2">
+										{uploadMutation.isPending &&
+										uploadMutation.variables?.type === "profile" ? (
+											<div className="inset-0 flex h-full flex-1 items-center justify-center bg-primary/30">
+												<LoadingSpinner className="h-8 w-8 text-white" />
+											</div>
+										) : (
+											<>
+												<Button
+													type="button"
+													variant="destructive"
+													size="icon"
+													className={cn(
+														"sm:invisible sm:group-hover:visible",
+														!profilePreview && "hidden",
+													)}
+													onClick={() => handleDeleteImage("profile")}
+												>
+													<Trash2 className="size-4" />
+												</Button>
+												<Button
+													type="button"
+													variant="outline"
+													size="icon"
+													className="sm:invisible sm:group-hover:visible"
+													onClick={() =>
+														document.getElementById("image")?.click()
+													}
+													disabled={uploadMutation.isPending}
+												>
+													<Upload className="h-4 w-4" />
+												</Button>
+											</>
+										)}
 									</div>
 								</div>
 								<Input
@@ -235,48 +257,59 @@ export function SettingsForm() {
 						</FormLabel>
 						<div className="flex flex-col items-center gap-4">
 							<div className="group relative h-32 w-32">
-								<div className="relative h-full w-full overflow-hidden rounded-lg bg-muted">
+								<div className="relative h-full w-full overflow-hidden rounded-full bg-muted">
 									{logoPreview ? (
 										<Image
 											src={logoPreview}
 											alt="Company Logo"
 											fill
-											className="object-contain transition-opacity group-hover:opacity-50"
+											className="object-cover transition-opacity group-hover:opacity-50"
 										/>
 									) : (
-										<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+										<ImageIcon
+											className={cn(
+												"-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground",
+												uploadMutation.isPending &&
+													uploadMutation.variables?.type === "logo" &&
+													"opacity-50",
+											)}
+										/>
 									)}
 
-									<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex gap-2">
-										<Button
-											type="button"
-											variant="destructive"
-											size="icon"
-											className={cn(
-												"sm:invisible sm:group-hover:visible",
-												!logoPreview && "hidden",
-											)}
-											onClick={() => handleDeleteImage("logo")}
-										>
-											<Trash2 className="size-4" />
-										</Button>
-										<Button
-											type="button"
-											variant="outline"
-											size="icon"
-											className="sm:invisible sm:group-hover:visible"
-											onClick={() =>
-												document.getElementById("companyLogo")?.click()
-											}
-											disabled={uploadMutation.isPending}
-										>
-											{uploadMutation.isPending &&
-											uploadMutation.variables?.type === "logo" ? (
-												<LoadingSpinner className="h-4 w-4" />
-											) : (
-												<Upload className="h-4 w-4" />
-											)}
-										</Button>
+									<div className="absolute inset-0 flex items-center justify-center gap-2">
+										{uploadMutation.isPending &&
+										uploadMutation.variables?.type === "logo" ? (
+											<div className="inset-0 flex h-full flex-1 items-center justify-center bg-primary/30">
+												<LoadingSpinner className="h-8 w-8 text-white" />
+											</div>
+										) : (
+											<>
+												<Button
+													type="button"
+													variant="destructive"
+													size="icon"
+													className={cn(
+														"sm:invisible sm:group-hover:visible",
+														!logoPreview && "hidden",
+													)}
+													onClick={() => handleDeleteImage("logo")}
+												>
+													<Trash2 className="size-4" />
+												</Button>
+												<Button
+													type="button"
+													variant="outline"
+													size="icon"
+													className="sm:invisible sm:group-hover:visible"
+													onClick={() =>
+														document.getElementById("companyLogo")?.click()
+													}
+													disabled={uploadMutation.isPending}
+												>
+													<Upload className="h-4 w-4" />
+												</Button>
+											</>
+										)}
 									</div>
 								</div>
 								<Input
