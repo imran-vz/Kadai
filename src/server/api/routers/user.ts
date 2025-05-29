@@ -71,4 +71,15 @@ export const userRouter = createTRPCRouter({
 				url: input.imageUrl,
 			};
 		}),
+
+	deleteImage: protectedProcedure
+		.input(z.enum(["profile", "logo"]))
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db
+				.update(users)
+				.set(input === "profile" ? { image: null } : { companyLogo: null })
+				.where(eq(users.id, ctx.session.user.id));
+
+			return `${input === "profile" ? "Profile photo" : "Company logo"} removed successfully`;
+		}),
 });

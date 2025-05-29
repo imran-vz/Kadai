@@ -1,13 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ImageIcon, Upload } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { ImageIcon, Trash2, Upload } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
+
 import { Button } from "~/components/ui/button";
 import {
 	Form,
@@ -18,10 +20,9 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { api } from "~/trpc/react";
-import { useSession } from "next-auth/react";
-import { LoadingSpinner } from "../ui/loading-spinner";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const settingsSchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),
@@ -95,9 +96,39 @@ export function SettingsForm() {
 		},
 	});
 
+	const deleteImage = api.user.deleteImage.useMutation({
+		onSuccess: (message, type) => {
+			toast.success(message);
+			if (type === "profile") {
+				setProfilePreview(null);
+				update({
+					user: {
+						...(sessionData ? sessionData.user : {}),
+						image: null,
+					},
+				});
+			} else {
+				setLogoPreview(null);
+				update({
+					user: {
+						...(sessionData ? sessionData.user : {}),
+						companyLogo: null,
+					},
+				});
+			}
+		},
+		onError: () => {
+			toast.error("Failed to delete image");
+		},
+	});
+
 	const handleImageUpload = async (file: File, type: "profile" | "logo") => {
 		if (!file) return;
 		uploadMutation.mutate({ file, type });
+	};
+
+	const handleDeleteImage = (type: "profile" | "logo") => {
+		deleteImage.mutate(type);
 	};
 
 	const onSubmit = async (data: z.infer<typeof settingsSchema>) => {
@@ -133,90 +164,132 @@ export function SettingsForm() {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-				<div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+				<div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
 					{/* Profile Image Upload */}
 					<div>
-						<FormLabel>Profile Image</FormLabel>
+						<FormLabel className="sm:block sm:w-full sm:text-center">
+							Profile Image
+						</FormLabel>
 						<div className="flex flex-col items-center gap-4">
-							<div className="relative h-32 w-32 overflow-hidden rounded-full bg-muted">
-								{profilePreview ? (
-									<Image
-										src={profilePreview}
-										alt="Profile"
-										fill
-										className="object-cover"
-									/>
-								) : (
-									<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
-								)}
+							<div className="group relative h-32 w-32">
+								<div className="relative h-full w-full overflow-hidden rounded-full bg-muted">
+									{profilePreview ? (
+										<Image
+											src={profilePreview}
+											alt="Profile"
+											fill
+											className="object-cover transition-opacity group-hover:opacity-50"
+										/>
+									) : (
+										<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+									)}
+
+									<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex gap-2">
+										<Button
+											type="button"
+											variant="destructive"
+											size="icon"
+											className={cn(
+												"sm:invisible sm:group-hover:visible",
+												!profilePreview && "hidden",
+											)}
+											onClick={() => handleDeleteImage("profile")}
+										>
+											<Trash2 className="size-4" />
+										</Button>
+										<Button
+											type="button"
+											variant="outline"
+											size="icon"
+											className="sm:invisible sm:group-hover:visible"
+											onClick={() => document.getElementById("image")?.click()}
+											disabled={uploadMutation.isPending}
+										>
+											{uploadMutation.isPending &&
+											uploadMutation.variables?.type === "profile" ? (
+												<LoadingSpinner className="h-4 w-4" />
+											) : (
+												<Upload className="h-4 w-4" />
+											)}
+										</Button>
+									</div>
+								</div>
+								<Input
+									type="file"
+									accept="image/*"
+									className="hidden"
+									id="image"
+									onChange={(e) => {
+										const file = e.target.files?.[0];
+										if (file) handleImageUpload(file, "profile");
+									}}
+								/>
 							</div>
-							<Input
-								type="file"
-								accept="image/*"
-								className="hidden"
-								id="image"
-								onChange={(e) => {
-									const file = e.target.files?.[0];
-									if (file) handleImageUpload(file, "profile");
-								}}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => document.getElementById("image")?.click()}
-								disabled={uploadMutation.isPending}
-							>
-								{uploadMutation.isPending &&
-								uploadMutation.variables?.type === "profile" ? (
-									<LoadingSpinner className="h-4 w-4" />
-								) : (
-									<Upload className="h-4 w-4" />
-								)}
-								Upload Image
-							</Button>
 						</div>
 					</div>
 
 					{/* Company Logo Upload */}
 					<div>
-						<FormLabel>Company Logo</FormLabel>
+						<FormLabel className="sm:block sm:w-full sm:text-center">
+							Company Logo
+						</FormLabel>
 						<div className="flex flex-col items-center gap-4">
-							<div className="relative h-32 w-32 overflow-hidden rounded-lg bg-muted">
-								{logoPreview ? (
-									<Image
-										src={logoPreview}
-										alt="Company Logo"
-										fill
-										className="object-contain"
-									/>
-								) : (
-									<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
-								)}
+							<div className="group relative h-32 w-32">
+								<div className="relative h-full w-full overflow-hidden rounded-lg bg-muted">
+									{logoPreview ? (
+										<Image
+											src={logoPreview}
+											alt="Company Logo"
+											fill
+											className="object-contain transition-opacity group-hover:opacity-50"
+										/>
+									) : (
+										<ImageIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-12 w-12 transform text-muted-foreground" />
+									)}
+
+									<div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex gap-2">
+										<Button
+											type="button"
+											variant="destructive"
+											size="icon"
+											className={cn(
+												"sm:invisible sm:group-hover:visible",
+												!logoPreview && "hidden",
+											)}
+											onClick={() => handleDeleteImage("logo")}
+										>
+											<Trash2 className="size-4" />
+										</Button>
+										<Button
+											type="button"
+											variant="outline"
+											size="icon"
+											className="sm:invisible sm:group-hover:visible"
+											onClick={() =>
+												document.getElementById("companyLogo")?.click()
+											}
+											disabled={uploadMutation.isPending}
+										>
+											{uploadMutation.isPending &&
+											uploadMutation.variables?.type === "logo" ? (
+												<LoadingSpinner className="h-4 w-4" />
+											) : (
+												<Upload className="h-4 w-4" />
+											)}
+										</Button>
+									</div>
+								</div>
+								<Input
+									type="file"
+									accept="image/*"
+									className="hidden"
+									id="companyLogo"
+									onChange={(e) => {
+										const file = e.target.files?.[0];
+										if (file) handleImageUpload(file, "logo");
+									}}
+								/>
 							</div>
-							<Input
-								type="file"
-								accept="image/*"
-								className="hidden"
-								id="companyLogo"
-								onChange={(e) => {
-									const file = e.target.files?.[0];
-									if (file) handleImageUpload(file, "logo");
-								}}
-							/>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => document.getElementById("companyLogo")?.click()}
-								disabled={uploadMutation.isPending}
-							>
-								{uploadMutation.isPending &&
-								uploadMutation.variables?.type === "logo" ? (
-									<LoadingSpinner className="h-4 w-4" />
-								) : (
-									<Upload className="h-4 w-4" />
-								)}
-								Upload Logo
-							</Button>
 						</div>
 					</div>
 				</div>
