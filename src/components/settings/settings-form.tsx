@@ -23,6 +23,7 @@ import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { ImageCropModal } from "~/components/ui/image-crop-modal";
 
 const settingsSchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),
@@ -38,6 +39,8 @@ export function SettingsForm() {
 		sessionData?.user.companyLogo || null,
 	);
 	const updateCompany = api.company.update.useMutation();
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [cropType, setCropType] = useState<"profile" | "logo" | null>(null);
 
 	const form = useForm<z.infer<typeof settingsSchema>>({
 		resolver: zodResolver(settingsSchema),
@@ -122,9 +125,16 @@ export function SettingsForm() {
 		},
 	});
 
-	const handleImageUpload = async (file: File, type: "profile" | "logo") => {
-		if (!file) return;
+	const handleImageUpload = async (blob: Blob, type: "profile" | "logo") => {
+		const file = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
 		uploadMutation.mutate({ file, type });
+		setSelectedFile(null);
+		setCropType(null);
+	};
+
+	const handleFileSelect = (file: File, type: "profile" | "logo") => {
+		setSelectedFile(file);
+		setCropType(type);
 	};
 
 	const handleDeleteImage = (type: "profile" | "logo") => {
@@ -243,7 +253,7 @@ export function SettingsForm() {
 									id="image"
 									onChange={(e) => {
 										const file = e.target.files?.[0];
-										if (file) handleImageUpload(file, "profile");
+										if (file) handleFileSelect(file, "profile");
 									}}
 								/>
 							</div>
@@ -319,7 +329,7 @@ export function SettingsForm() {
 									id="companyLogo"
 									onChange={(e) => {
 										const file = e.target.files?.[0];
-										if (file) handleImageUpload(file, "logo");
+										if (file) handleFileSelect(file, "logo");
 									}}
 								/>
 							</div>
@@ -371,6 +381,17 @@ export function SettingsForm() {
 					</span>
 				</Button>
 			</form>
+
+			<ImageCropModal
+				file={selectedFile}
+				onComplete={(blob) => {
+					if (cropType) handleImageUpload(blob, cropType);
+				}}
+				onCancel={() => {
+					setSelectedFile(null);
+					setCropType(null);
+				}}
+			/>
 		</Form>
 	);
 }
