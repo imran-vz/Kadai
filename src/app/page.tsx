@@ -1,23 +1,32 @@
+import { Cart } from "~/components/cart/cart";
+import { ItemGrid } from "~/components/items/item-grid";
 import { auth } from "~/server/auth";
-import { HydrateClient } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
 	const session = await auth();
 
+	if (session?.user) {
+		void api.items.getAll.prefetch();
+	}
+
 	return (
 		<HydrateClient>
 			<div className="container mx-auto flex w-full flex-col items-center justify-center gap-12 px-4 py-16">
-				<h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
-					Kadai
-				</h1>
-
-				<div className="flex flex-col items-center gap-2">
-					<div className="flex flex-col items-center justify-center gap-4">
-						<p className="text-center text-2xl">
-							{session && <span>Logged in as {session.user?.name}</span>}
-						</p>
+				{session ? (
+					<div className="container flex flex-col gap-8 md:grid md:grid-cols-[1fr_500px]">
+						<div>
+							<ItemGrid />
+						</div>
+						<div className="h-[calc(100vh-16rem)] rounded-lg border bg-card md:h-[calc(100vh-30rem)]">
+							<Cart />
+						</div>
 					</div>
-				</div>
+				) : (
+					<h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
+						Kadai
+					</h1>
+				)}
 			</div>
 		</HydrateClient>
 	);
