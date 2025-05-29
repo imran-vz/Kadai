@@ -1,5 +1,6 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 
@@ -17,6 +18,10 @@ export default function error({
 			window.location.href = "/login";
 		}
 	}, [error]);
+
+	if (String(error.message).toUpperCase() === "UNAUTHORIZED") {
+		redirect("/login");
+	}
 
 	return (
 		<div className="flex min-h-[calc(100vh-155px)] flex-col items-center justify-center gap-4 text-center">
