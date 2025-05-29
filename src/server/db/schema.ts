@@ -143,6 +143,8 @@ export const items = createTable(
 	],
 );
 
+export type Item = typeof items.$inferSelect;
+
 export const orders = createTable(
 	"orders",
 	(d) => ({
