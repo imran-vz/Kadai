@@ -56,14 +56,19 @@ export function ImageCropModal({
 
 	const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
 		const { width, height } = e.currentTarget;
-		const cropWidthInPercent = (256 / width) * 100;
+
+		// Calculate the size for a square crop
+		const smallestSide = Math.min(width, height);
+		const cropSize = Math.min(smallestSide, 512); // Don't exceed max size
+		const cropWidthInPercent = (cropSize / width) * 100;
+		const cropHeightInPercent = (cropSize / height) * 100;
 
 		const newCrop: Crop = {
 			unit: "%",
 			width: cropWidthInPercent,
-			height: cropWidthInPercent,
+			height: cropHeightInPercent,
 			x: (100 - cropWidthInPercent) / 2,
-			y: (100 - cropWidthInPercent) / 2,
+			y: (100 - cropHeightInPercent) / 2,
 		};
 
 		setCrop(newCrop);
