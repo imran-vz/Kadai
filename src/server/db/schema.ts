@@ -175,7 +175,7 @@ export const orders = createTable(
 			.notNull()
 			.default(sql`CURRENT_TIMESTAMP`),
 		deliveryCost: d
-			.numeric({ precision: 5, scale: 2 })
+			.numeric({ precision: 8, scale: 2 })
 			.notNull()
 			.default("0.00"),
 		total: d.numeric({ precision: 10, scale: 2 }).notNull(),
