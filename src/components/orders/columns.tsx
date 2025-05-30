@@ -74,7 +74,7 @@ export function OrdersTable({
 			<DataTable
 				columns={columns}
 				data={data}
-				onRowClick={(row) => setSelectedOrderId(row.original.id)}
+				onRowClick={(row) => setSelectedOrderId(row.id)}
 			/>
 			{selectedOrder && (
 				<OrderDetailsModal

@@ -31,21 +31,21 @@ import { LoadingSpinner } from "../ui/loading-spinner";
 import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 interface OrderDetailsModalProps {
-	order: typeof orders.$inferSelect;
 	onOpenChange: (open: boolean) => void;
+	order: typeof orders.$inferSelect;
 }
 
 export function OrderDetailsModal({
-	order,
 	onOpenChange,
+	order,
 }: OrderDetailsModalProps) {
-	const { data: orderDetails, isLoading } = api.orders.getOrderDetails.useQuery(
+	const { data: orderItems } = api.orders.getOrderDetails.useQuery(
 		{ orderId: order.id },
 		{ enabled: !!order.id },
 	);
 
 	const { modalStyle } = useMobileModal();
-	const [status, setStatus] = useState(order.status);
+	const [status, setStatus] = useState(order?.status);
 	const utils = api.useUtils();
 	const { mutate: updateStatus, isPending: isUpdating } =
 		api.orders.updateStatus.useMutation({
@@ -56,7 +56,7 @@ export function OrderDetailsModal({
 		});
 
 	const subtotal =
-		orderDetails?.items.reduce(
+		orderItems?.items.reduce(
 			(acc, item) => acc + item.price * item.quantity,
 			0,
 		) ?? 0;
@@ -75,7 +75,7 @@ export function OrderDetailsModal({
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<p className="font-medium text-sm">Customer Name</p>
-							<p className="text-gray-500 text-sm">{order.customerName}</p>
+							<p className="text-gray-500 text-sm">{order?.customerName}</p>
 						</div>
 						<div>
 							<p className="font-medium text-sm">Status</p>
@@ -83,7 +83,7 @@ export function OrderDetailsModal({
 								<Select
 									value={status}
 									onValueChange={(value) =>
-										setStatus(value as typeof order.status)
+										setStatus(value as (typeof order)["status"])
 									}
 								>
 									<SelectTrigger className="w-[140px]">
@@ -100,7 +100,7 @@ export function OrderDetailsModal({
 									variant="secondary"
 									size="sm"
 									onClick={() => updateStatus({ orderId: order.id, status })}
-									disabled={status === order.status || isUpdating}
+									disabled={status === order?.status || isUpdating}
 									className="relative"
 									aria-label="Save status"
 									aria-live="polite"
@@ -121,7 +121,7 @@ export function OrderDetailsModal({
 						<div>
 							<p className="font-medium text-sm">Order Date</p>
 							<p className="text-gray-500 text-sm">
-								{new Date(order.createdAt).toLocaleDateString("en-IN")}
+								{new Date(order?.createdAt).toLocaleDateString("en-IN")}
 							</p>
 						</div>
 						<div>
@@ -131,24 +131,19 @@ export function OrderDetailsModal({
 									<span>Subtotal</span>
 									<span>{formatCurrency(subtotal)}</span>
 								</div>
-								{orderDetails?.taxRate && orderDetails.taxRate > 0 && (
-									<div className="flex justify-between">
-										<span>GST ({orderDetails.taxRate}%)</span>
-										<span>{formatCurrency(orderDetails.tax)}</span>
-									</div>
-								)}
-								{orderDetails?.deliveryCost &&
-									orderDetails.deliveryCost > 0 && (
-										<div className="flex justify-between">
-											<span>Delivery</span>
-											<span>
-												{formatCurrency(Number.parseFloat(order.deliveryCost))}
-											</span>
-										</div>
-									)}
+								<div className="flex justify-between">
+									<span>GST ({order?.taxRate}%)</span>
+									<span>{formatCurrency(Number.parseFloat(order?.tax))}</span>
+								</div>
+								<div className="flex justify-between">
+									<span>Delivery</span>
+									<span>
+										{formatCurrency(Number.parseFloat(order?.deliveryCost))}
+									</span>
+								</div>
 								<div className="flex justify-between border-t pt-1 font-medium text-foreground">
 									<span>Total</span>
-									<span>{formatCurrency(Number.parseFloat(order.total))}</span>
+									<span>{formatCurrency(Number.parseFloat(order?.total))}</span>
 								</div>
 							</div>
 						</div>
@@ -156,11 +151,7 @@ export function OrderDetailsModal({
 
 					<div>
 						<h3 className="mb-2 font-medium text-sm">Order Items</h3>
-						{isLoading ? (
-							<div className="flex justify-center py-4">
-								<LoadingSpinner className="h-6 w-6 animate-spin text-primary" />
-							</div>
-						) : (
+						{order ? (
 							<div className="grid max-h-[70vh] grid-cols-1 overflow-auto">
 								<div className="w-full min-w-full overflow-x-auto">
 									<Table>
@@ -173,7 +164,7 @@ export function OrderDetailsModal({
 											</TableRow>
 										</TableHeader>
 										<TableBody>
-											{orderDetails?.items.map((item: OrderItem) => (
+											{orderItems?.items.map((item: OrderItem) => (
 												<TableRow key={item.itemId}>
 													<TableCell>{item.name}</TableCell>
 													<TableCell>{item.quantity}</TableCell>
@@ -186,6 +177,10 @@ export function OrderDetailsModal({
 										</TableBody>
 									</Table>
 								</div>
+							</div>
+						) : (
+							<div className="flex justify-center py-4">
+								<LoadingSpinner className="h-6 w-6 animate-spin text-primary" />
 							</div>
 						)}
 					</div>
