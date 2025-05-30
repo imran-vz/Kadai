@@ -28,6 +28,7 @@ import type { OrderItem } from "~/server/api/routers/orders";
 import type { orders } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 interface OrderDetailsModalProps {
 	order: typeof orders.$inferSelect;
@@ -43,6 +44,7 @@ export function OrderDetailsModal({
 		{ enabled: !!order.id },
 	);
 
+	const { modalStyle } = useMobileModal();
 	const [status, setStatus] = useState(order.status);
 	const utils = api.useUtils();
 	const { mutate: updateStatus, isPending: isUpdating } =
@@ -61,7 +63,10 @@ export function OrderDetailsModal({
 
 	return (
 		<Dialog open={!!order.id} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] max-w-[90vw] overflow-hidden">
+			<DialogContent
+				className="max-h-[90vh] max-w-[90vw] overflow-hidden"
+				style={modalStyle}
+			>
 				<DialogHeader>
 					<DialogTitle>Order Details</DialogTitle>
 				</DialogHeader>

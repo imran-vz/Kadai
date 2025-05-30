@@ -26,6 +26,7 @@ import { useCart } from "~/lib/store/cart";
 import { formatCurrency } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 const checkoutSchema = z.object({
 	customerName: z.string().min(1, "Customer name is required"),
@@ -39,10 +40,11 @@ interface CheckoutDialogProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
+export function CheckoutModal({ open, onOpenChange }: CheckoutDialogProps) {
 	const cart = useCart();
 	const [user] = api.user.me.useSuspenseQuery();
 	const createOrder = api.orders.create.useMutation();
+	const { modalStyle } = useMobileModal();
 
 	const subtotal = cart.items.reduce((acc, item) => {
 		return acc + Number.parseFloat(item.price) * item.quantity;
@@ -90,7 +92,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+			<DialogContent style={modalStyle}>
 				<DialogHeader>
 					<DialogTitle>Checkout</DialogTitle>
 				</DialogHeader>

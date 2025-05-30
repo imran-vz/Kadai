@@ -6,7 +6,7 @@ import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useCart } from "~/lib/store/cart";
 import { formatCurrency } from "~/lib/utils";
-import { CheckoutDialog } from "./checkout-dialog";
+import { CheckoutModal } from "./checkout-modal";
 import { api } from "~/trpc/react";
 
 export function Cart() {
@@ -114,7 +114,7 @@ export function Cart() {
 				</div>
 			</div>
 
-			<CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+			<CheckoutModal open={checkoutOpen} onOpenChange={setCheckoutOpen} />
 		</>
 	);
 }
