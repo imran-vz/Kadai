@@ -56,12 +56,12 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 		resolver: zodResolver(checkoutSchema),
 		defaultValues: {
 			customerName: "",
-			deliveryCost: "0",
+			deliveryCost: "",
 		},
 	});
 
-	const deliveryCost = Number(
-		useWatch({ control: form.control, name: "deliveryCost" }) || 0,
+	const deliveryCost = Number.parseFloat(
+		useWatch({ control: form.control, name: "deliveryCost" }) || "0",
 	);
 	const total = subtotal + deliveryCost;
 
@@ -73,7 +73,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 
 		createOrder.mutate({
 			customerName: data.customerName,
-			deliveryCost: Number(data.deliveryCost || 0),
+			deliveryCost: Number.parseFloat(data.deliveryCost || "0"),
 			items: orderItems,
 			total,
 		});

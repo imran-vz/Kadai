@@ -43,7 +43,7 @@ export const useCart = create<CartStore>()(
 				});
 			},
 			total: get().items.reduce(
-				(acc, item) => acc + Number(item.price) * item.quantity,
+				(acc, item) => acc + Number.parseFloat(item.price) * item.quantity,
 				0,
 			),
 			clear: () => set({ items: [] }),

@@ -22,7 +22,7 @@ export function ItemGrid() {
 						{item.name}
 					</span>
 					<span className="text-muted-foreground">
-						{formatCurrency(Number(item.price))}
+						{formatCurrency(Number.parseFloat(item.price))}
 					</span>
 				</Button>
 			))}

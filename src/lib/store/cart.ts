@@ -41,7 +41,7 @@ export const useCart = create<CartStore>()(
 				set({
 					items: newItems,
 					total: newItems.reduce(
-						(acc, item) => acc + Number(item.price) * item.quantity,
+						(acc, item) => acc + Number.parseFloat(item.price) * item.quantity,
 						0,
 					),
 				});
@@ -51,7 +51,7 @@ export const useCart = create<CartStore>()(
 				set({
 					items: newItems,
 					total: newItems.reduce(
-						(acc, item) => acc + Number(item.price) * item.quantity,
+						(acc, item) => acc + Number.parseFloat(item.price) * item.quantity,
 						0,
 					),
 				});
@@ -64,7 +64,7 @@ export const useCart = create<CartStore>()(
 				set({
 					items: newItems,
 					total: newItems.reduce(
-						(acc, item) => acc + Number(item.price) * item.quantity,
+						(acc, item) => acc + Number.parseFloat(item.price) * item.quantity,
 						0,
 					),
 				});

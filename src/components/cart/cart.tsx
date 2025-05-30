@@ -32,7 +32,7 @@ export function Cart() {
 								<div className="flex flex-col">
 									<span className="font-medium">{item.name}</span>
 									<span className="text-muted-foreground text-sm">
-										{formatCurrency(Number(item.price))}
+										{formatCurrency(Number.parseFloat(item.price))}
 									</span>
 								</div>
 

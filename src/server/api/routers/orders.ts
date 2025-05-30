@@ -58,7 +58,7 @@ export const ordersRouter = createTRPCRouter({
 				const items: OrderItem[] = order.orderItems.map((orderItem) => ({
 					itemId: orderItem.item.id,
 					name: orderItem.item.name,
-					price: Number(orderItem.item.price),
+					price: Number.parseFloat(orderItem.item.price),
 					quantity: orderItem.quantity,
 				}));
 

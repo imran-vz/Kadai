@@ -110,7 +110,7 @@ async function main() {
 		await db
 			.update(orders)
 			.set({
-				total: `${Number(randomItem1?.price || 0) + Number(randomItem2?.price || 0)}`,
+				total: `${Number.parseFloat(randomItem1?.price || "0") + Number.parseFloat(randomItem2?.price || "0")}`,
 			})
 			.where(eq(orders.id, order.id));
 	}
