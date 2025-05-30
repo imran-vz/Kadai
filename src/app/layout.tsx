@@ -4,6 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import { Footer } from "~/components/footer/footer";
 import { LoginToast } from "~/components/login-toast";
@@ -42,6 +43,7 @@ export default async function RootLayout({
 							<Footer />
 							<LoginToast />
 							<SpeedInsights />
+							<Analytics />
 						</>
 					</SessionProvider>
 				</TRPCReactProvider>
