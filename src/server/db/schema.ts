@@ -41,6 +41,8 @@ export const users = createTable("user", (d) => ({
 	companyLogo: d.varchar({ length: 512 }),
 }));
 
+export type User = typeof users.$inferSelect;
+
 export const accounts = createTable(
 	"account",
 	(d) => ({
@@ -184,6 +186,8 @@ export const orders = createTable(
 	],
 );
 
+export type Order = typeof orders.$inferSelect;
+
 export const orderItems = createTable(
 	"order_items",
 	(d) => ({
@@ -199,6 +203,8 @@ export const orderItems = createTable(
 	}),
 	(t) => [primaryKey({ columns: [t.orderId, t.itemId] })],
 );
+
+export type OrderItem = typeof orderItems.$inferSelect;
 
 export const imageUpdateLogs = createTable("image_update_logs", (d) => ({
 	id: d
