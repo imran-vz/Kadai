@@ -1,9 +1,10 @@
 import "~/styles/globals.css";
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
 import { Inter } from "next/font/google";
 
-import { SessionProvider } from "next-auth/react";
 import { Footer } from "~/components/footer/footer";
 import { LoginToast } from "~/components/login-toast";
 import { Navbar } from "~/components/navbar/navbar";
@@ -40,6 +41,7 @@ export default async function RootLayout({
 							<Toaster richColors position="top-center" />
 							<Footer />
 							<LoginToast />
+							<SpeedInsights />
 						</>
 					</SessionProvider>
 				</TRPCReactProvider>
