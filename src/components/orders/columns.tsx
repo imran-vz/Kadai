@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { DataTable } from "~/components/ui/data-table";
-import { cn } from "~/lib/utils";
+import { cn, formatCurrency } from "~/lib/utils";
 import type { orders } from "~/server/db/schema";
 import { OrderDetailsModal } from "./order-details-modal";
 
@@ -48,17 +48,14 @@ export const columns: ColumnDef<typeof orders.$inferSelect>[] = [
 		header: "Total",
 		cell: ({ row }) => {
 			const total = row.getValue("total") as number;
-			return total.toLocaleString("en-US", {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			});
+			return <span>{formatCurrency(total)}</span>;
 		},
 	},
 	{
 		accessorKey: "createdAt",
 		header: "Date",
 		cell: ({ row }) => {
-			return new Date(row.getValue("createdAt")).toLocaleDateString();
+			return new Date(row.getValue("createdAt")).toLocaleDateString("en-IN");
 		},
 	},
 ];

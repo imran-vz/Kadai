@@ -21,6 +21,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { formatCurrency } from "~/lib/utils";
 import type { items } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { EditItemModal } from "./edit-item-modal";
@@ -39,17 +40,14 @@ export const columns: ColumnDef<typeof items.$inferSelect>[] = [
 		header: "Price",
 		cell: ({ row }) => {
 			const price = row.getValue("price") as number;
-			return price.toLocaleString("en-US", {
-				minimumFractionDigits: 0,
-				maximumFractionDigits: 0,
-			});
+			return <span>{formatCurrency(price)}</span>;
 		},
 	},
 	{
 		accessorKey: "createdAt",
 		header: "Created At",
 		cell: ({ row }) => {
-			return new Date(row.getValue("createdAt")).toLocaleDateString();
+			return new Date(row.getValue("createdAt")).toLocaleDateString("en-IN");
 		},
 	},
 	{
