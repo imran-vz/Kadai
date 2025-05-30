@@ -1,5 +1,6 @@
 import "dotenv/config";
 import "../../env.js";
+
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { items, orderItems, orders } from "./schema";
@@ -63,6 +64,9 @@ async function main() {
 			createdAt: new Date("2024-01-15T10:00:00Z"),
 			updatedAt: new Date("2024-01-15T10:00:00Z"),
 			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
 		},
 		{
 			userId: testUserId,
@@ -71,6 +75,9 @@ async function main() {
 			createdAt: new Date("2024-02-01T15:30:00Z"),
 			updatedAt: new Date("2024-02-01T15:30:00Z"),
 			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
 		},
 		{
 			userId: testUserId,
@@ -79,6 +86,97 @@ async function main() {
 			createdAt: new Date("2024-02-15T09:15:00Z"),
 			updatedAt: new Date("2024-02-15T09:15:00Z"),
 			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "cancelled" as const,
+			total: "149.99", // Mechanical Keyboard
+			createdAt: new Date("2024-03-01T12:45:00Z"),
+			updatedAt: new Date("2024-03-01T12:45:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "completed" as const,
+			total: "199.99", // Gaming Laptop
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "pending" as const,
+			total: "149.99", // Mechanical Keyboard
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "cancelled" as const,
+			total: "149.99", // Mechanical Keyboard
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "completed" as const,
+			total: "199.99", // Gaming Laptop
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "pending" as const,
+			total: "149.99", // Mechanical Keyboard
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "completed" as const,
+			total: "199.99", // Gaming Laptop
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
+		},
+		{
+			userId: testUserId,
+			status: "completed" as const,
+			total: "199.99", // Gaming Laptop
+			createdAt: new Date("2024-03-15T14:30:00Z"),
+			updatedAt: new Date("2024-03-15T14:30:00Z"),
+			customerName: "John Doe",
+			deliveryCost: "10",
+			tax: "18",
+			taxRate: "18",
 		},
 	];
 
@@ -92,6 +190,8 @@ async function main() {
 		const randomItem1 = itemsDataWithIds[index];
 		const randomItem2 =
 			itemsDataWithIds.at(index + 1) || itemsDataWithIds.at(index - 1);
+		const randomItem3 =
+			itemsDataWithIds.at(index + 2) || itemsDataWithIds.at(index - 2);
 
 		const orderItemsData = [
 			{
@@ -104,13 +204,28 @@ async function main() {
 				itemId: randomItem2?.id || "",
 				quantity: 1,
 			},
+			{
+				orderId: order.id,
+				itemId: randomItem3?.id || "",
+				quantity: 1,
+			},
 		];
 
 		await db.insert(orderItems).values(orderItemsData);
+		const subtotal =
+			Number.parseFloat(randomItem1?.price || "0") +
+			Number.parseFloat(randomItem2?.price || "0") +
+			Number.parseFloat(randomItem3?.price || "0");
+		const tax = (subtotal * Number.parseFloat(order.taxRate || "0")) / 100;
+		const total = subtotal + Number.parseFloat(order.deliveryCost || "0") + tax;
+
 		await db
 			.update(orders)
 			.set({
-				total: `${Number.parseFloat(randomItem1?.price || "0") + Number.parseFloat(randomItem2?.price || "0")}`,
+				total: total.toFixed(2),
+				tax: tax.toFixed(2),
+				taxRate: order.taxRate,
+				deliveryCost: order.deliveryCost,
 			})
 			.where(eq(orders.id, order.id));
 	}
