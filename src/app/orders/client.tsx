@@ -11,7 +11,7 @@ export default function OrdersPage() {
 	const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 	const [page, setPage] = useState(0);
 
-	const [data, { isLoading }] = api.orders.getAll.useSuspenseQuery({
+	const { data, isLoading } = api.orders.getAll.useQuery({
 		limit: 10,
 		cursor: page.toString(),
 	});
