@@ -39,6 +39,12 @@ export const users = createTable("user", (d) => ({
 	companyName: d.varchar({ length: 255 }),
 	companyAddress: d.varchar({ length: 512 }),
 	companyLogo: d.varchar({ length: 512 }),
+	gstNumber: d.text("gst_number"),
+	gstEnabled: d.boolean("gst_enabled").default(false).notNull(),
+	gstRate: d
+		.numeric("gst_rate", { precision: 5, scale: 2 })
+		.default("18.00")
+		.notNull(),
 }));
 
 export type User = typeof users.$inferSelect;
@@ -173,6 +179,8 @@ export const orders = createTable(
 			.notNull()
 			.default("0.00"),
 		total: d.numeric({ precision: 10, scale: 2 }).notNull(),
+		tax: d.numeric({ precision: 10, scale: 2 }).notNull().default("0.00"),
+		taxRate: d.numeric({ precision: 5, scale: 2 }).notNull().default("0.00"),
 		status: d
 			.varchar("status", {
 				enum: ["pending", "processing", "completed", "cancelled"],

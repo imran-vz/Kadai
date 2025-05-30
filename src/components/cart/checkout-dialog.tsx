@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+
 import { Button } from "~/components/ui/button";
 import {
 	Dialog,
@@ -21,11 +23,9 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { useCart } from "~/lib/store/cart";
-import { api } from "~/trpc/react";
-import { toast } from "sonner";
-import { LoadingSpinner } from "../ui/loading-spinner";
 import { formatCurrency } from "~/lib/utils";
-import { useWatch } from "react-hook-form";
+import { api } from "~/trpc/react";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const checkoutSchema = z.object({
 	customerName: z.string().min(1, "Customer name is required"),
@@ -40,18 +40,16 @@ interface CheckoutDialogProps {
 }
 
 export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
-	const { items, total: subtotal, clear } = useCart();
-	const createOrder = api.orders.create.useMutation({
-		onSuccess: () => {
-			toast.success("Order created successfully");
-			clear();
-			onOpenChange(false);
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
+	const cart = useCart();
+	const [user] = api.user.me.useSuspenseQuery();
+	const createOrder = api.orders.create.useMutation();
 
+	const subtotal = cart.items.reduce((acc, item) => {
+		return acc + Number.parseFloat(item.price) * item.quantity;
+	}, 0);
+
+	const gstRate = Number(user.gstRate) / 100;
+	const tax = user.gstEnabled ? subtotal * gstRate : 0;
 	const form = useForm<CheckoutFormData>({
 		resolver: zodResolver(checkoutSchema),
 		defaultValues: {
@@ -63,20 +61,31 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 	const deliveryCost = Number.parseFloat(
 		useWatch({ control: form.control, name: "deliveryCost" }) || "0",
 	);
-	const total = subtotal + deliveryCost;
+	const total = subtotal + tax + deliveryCost;
 
-	const onSubmit = (data: CheckoutFormData) => {
-		const orderItems = items.map((item) => ({
-			itemId: item.id,
-			quantity: item.quantity,
-		}));
+	const onSubmit = async (data: z.infer<typeof checkoutSchema>) => {
+		try {
+			await createOrder.mutateAsync({
+				customerName: data.customerName,
+				items: cart.items.map((item) => ({
+					id: item.id,
+					quantity: item.quantity,
+				})),
+				total,
+				tax,
+				taxRate: user.gstEnabled ? Number(user.gstRate) : 0,
+				deliveryCost: data.deliveryCost
+					? Number.parseFloat(data.deliveryCost)
+					: undefined,
+			});
 
-		createOrder.mutate({
-			customerName: data.customerName,
-			deliveryCost: Number.parseFloat(data.deliveryCost || "0"),
-			items: orderItems,
-			total,
-		});
+			cart.clear();
+			onOpenChange(false);
+			toast.success("Order placed successfully!");
+		} catch (error) {
+			console.error(error);
+			toast.error("Failed to place order");
+		}
 	};
 
 	return (
@@ -130,10 +139,19 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 								<span>Subtotal</span>
 								<span>{formatCurrency(subtotal)}</span>
 							</div>
+
+							{user.gstEnabled && (
+								<div className="flex justify-between text-sm">
+									<span>GST ({user.gstRate}%)</span>
+									<span>{formatCurrency(tax)}</span>
+								</div>
+							)}
+
 							<div className="flex justify-between text-sm">
 								<span>Delivery</span>
 								<span>{formatCurrency(deliveryCost)}</span>
 							</div>
+
 							<div className="flex justify-between border-t pt-2 font-medium">
 								<span>Total</span>
 								<span>{formatCurrency(total)}</span>
@@ -149,7 +167,7 @@ export function CheckoutDialog({ open, onOpenChange }: CheckoutDialogProps) {
 								{createOrder.isPending ? (
 									<LoadingSpinner className="h-4 w-4" />
 								) : (
-									`Pay ${formatCurrency(total)}`
+									"Place Order"
 								)}
 							</Button>
 						</DialogFooter>

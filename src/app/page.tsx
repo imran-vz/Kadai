@@ -8,6 +8,7 @@ export default async function Home() {
 
 	if (session?.user) {
 		void api.items.getAll.prefetch();
+		void api.user.me.prefetch();
 	}
 
 	return (

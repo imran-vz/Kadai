@@ -82,4 +82,30 @@ export const userRouter = createTRPCRouter({
 
 			return `${input === "profile" ? "Profile photo" : "Company logo"} removed successfully`;
 		}),
+
+	me: protectedProcedure.query(async ({ ctx }) => {
+		const { db, session } = ctx;
+
+		const user = await db.query.users.findFirst({
+			where: eq(users.id, session.user.id),
+			columns: {
+				id: true,
+				name: true,
+				email: true,
+				image: true,
+				companyName: true,
+				companyAddress: true,
+				companyLogo: true,
+				gstNumber: true,
+				gstEnabled: true,
+				gstRate: true,
+			},
+		});
+
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		return user;
+	}),
 });

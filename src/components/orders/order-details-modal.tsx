@@ -126,12 +126,21 @@ export function OrderDetailsModal({
 									<span>Subtotal</span>
 									<span>{formatCurrency(subtotal)}</span>
 								</div>
-								<div className="flex justify-between">
-									<span>Delivery</span>
-									<span>
-										{formatCurrency(Number.parseFloat(order.deliveryCost))}
-									</span>
-								</div>
+								{orderDetails?.taxRate && orderDetails.taxRate > 0 && (
+									<div className="flex justify-between">
+										<span>GST ({orderDetails.taxRate}%)</span>
+										<span>{formatCurrency(orderDetails.tax)}</span>
+									</div>
+								)}
+								{orderDetails?.deliveryCost &&
+									orderDetails.deliveryCost > 0 && (
+										<div className="flex justify-between">
+											<span>Delivery</span>
+											<span>
+												{formatCurrency(Number.parseFloat(order.deliveryCost))}
+											</span>
+										</div>
+									)}
 								<div className="flex justify-between border-t pt-1 font-medium text-foreground">
 									<span>Total</span>
 									<span>{formatCurrency(Number.parseFloat(order.total))}</span>

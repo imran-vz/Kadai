@@ -1,8 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { items, orderItems, orders } from "~/server/db/schema";
+import { orderItems, orders } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { TRPCError } from "@trpc/server";
 
 export type OrderItem = {
 	itemId: string;
@@ -10,6 +9,20 @@ export type OrderItem = {
 	price: number;
 	quantity: number;
 };
+
+const createOrderSchema = z.object({
+	customerName: z.string().min(1),
+	items: z.array(
+		z.object({
+			id: z.string(),
+			quantity: z.number().int().positive(),
+		}),
+	),
+	total: z.number().positive(),
+	tax: z.number().min(0),
+	taxRate: z.number().min(0),
+	deliveryCost: z.number().min(0).optional(),
+});
 
 export const ordersRouter = createTRPCRouter({
 	getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -41,9 +54,14 @@ export const ordersRouter = createTRPCRouter({
 					throw new Error("Unauthorized");
 				}
 
-				// Get the order with nested orderItems and their items
 				const order = await ctx.db.query.orders.findFirst({
-					columns: { id: true },
+					columns: {
+						id: true,
+						total: true,
+						tax: true,
+						taxRate: true,
+						deliveryCost: true,
+					},
 					where: and(
 						eq(orders.id, input.orderId),
 						eq(orders.userId, ctx.session.user.id),
@@ -62,7 +80,13 @@ export const ordersRouter = createTRPCRouter({
 					quantity: orderItem.quantity,
 				}));
 
-				return { items };
+				return {
+					items,
+					total: Number(order.total),
+					tax: Number(order.tax),
+					taxRate: Number(order.taxRate),
+					deliveryCost: Number(order.deliveryCost),
+				};
 			} catch (error) {
 				console.error(error);
 				throw new Error("Failed to fetch order details");
@@ -70,36 +94,21 @@ export const ordersRouter = createTRPCRouter({
 		}),
 
 	create: protectedProcedure
-		.input(
-			z.object({
-				customerName: z.string(),
-				deliveryCost: z.number().default(0),
-				items: z.array(
-					z.object({
-						itemId: z.string(),
-						quantity: z.number(),
-					}),
-				),
-				total: z.number(),
-			}),
-		)
+		.input(createOrderSchema)
 		.mutation(async ({ ctx, input }) => {
-			if (input.items.length === 0) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "Order must contain at least one item",
-				});
-			}
+			const { db, session } = ctx;
 
-			const order = await ctx.db.transaction(async (tx) => {
+			const order = await db.transaction(async (tx) => {
 				const [order] = await tx
 					.insert(orders)
 					.values({
 						customerName: input.customerName,
-						userId: ctx.session.user.id,
-						deliveryCost: input.deliveryCost.toFixed(2),
-						total: input.total.toFixed(2),
+						userId: session.user.id,
+						total: input.total.toString(),
 						status: "pending",
+						tax: input.tax.toString(),
+						taxRate: input.taxRate.toString(),
+						deliveryCost: input.deliveryCost?.toString() ?? "0.00",
 					})
 					.returning();
 
@@ -110,7 +119,7 @@ export const ordersRouter = createTRPCRouter({
 				await tx.insert(orderItems).values(
 					input.items.map((item) => ({
 						orderId: order.id,
-						itemId: item.itemId,
+						itemId: item.id,
 						quantity: item.quantity,
 					})),
 				);

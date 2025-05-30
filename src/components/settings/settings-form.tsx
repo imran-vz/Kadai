@@ -14,39 +14,47 @@ import { Button } from "~/components/ui/button";
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
 	FormMessage,
 } from "~/components/ui/form";
+import { ImageCropModal } from "~/components/ui/image-crop-modal";
 import { Input } from "~/components/ui/input";
+import { Switch } from "~/components/ui/switch";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { ImageCropModal } from "~/components/ui/image-crop-modal";
 
-const settingsSchema = z.object({
+const settingsFormSchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),
 	companyAddress: z.string().min(1, "Company address is required"),
+	gstNumber: z.string().optional(),
+	gstEnabled: z.boolean(),
+	gstRate: z.number().min(0).max(100),
 });
 
 export function SettingsForm() {
-	const { data: sessionData, update } = useSession();
+	const { update, data: sessionData } = useSession();
+	const [user] = api.user.me.useSuspenseQuery();
 	const [profilePreview, setProfilePreview] = useState<string | null>(
-		sessionData?.user.image || null,
+		user.image || null,
 	);
 	const [logoPreview, setLogoPreview] = useState<string | null>(
-		sessionData?.user.companyLogo || null,
+		user.companyLogo || null,
 	);
 	const updateCompany = api.company.update.useMutation();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const [cropType, setCropType] = useState<"profile" | "logo" | null>(null);
-
-	const form = useForm<z.infer<typeof settingsSchema>>({
-		resolver: zodResolver(settingsSchema),
+	const form = useForm<z.infer<typeof settingsFormSchema>>({
+		resolver: zodResolver(settingsFormSchema),
 		defaultValues: {
-			companyName: sessionData?.user.companyName || "",
-			companyAddress: sessionData?.user.companyAddress || "",
+			companyName: user.companyName ?? "",
+			companyAddress: user.companyAddress ?? "",
+			gstNumber: user.gstNumber ?? "",
+			gstEnabled: user.gstEnabled ?? false,
+			gstRate: Number(user.gstRate) ?? 18,
 		},
 	});
 
@@ -150,12 +158,15 @@ export function SettingsForm() {
 		deleteImage.mutate(type);
 	};
 
-	const onSubmit = async (data: z.infer<typeof settingsSchema>) => {
+	const onSubmit = async (data: z.infer<typeof settingsFormSchema>) => {
 		try {
 			await updateCompany.mutateAsync(
 				{
 					companyName: data.companyName,
 					companyAddress: data.companyAddress,
+					gstNumber: data.gstNumber,
+					gstEnabled: data.gstEnabled,
+					gstRate: data.gstRate,
 				},
 				{
 					onError(error) {
@@ -169,6 +180,9 @@ export function SettingsForm() {
 								...(sessionData ? sessionData.user : {}),
 								companyName: data.companyName,
 								companyAddress: data.companyAddress,
+								gstNumber: data.gstNumber,
+								gstEnabled: data.gstEnabled,
+								gstRate: data.gstRate,
 							},
 						});
 					},
@@ -362,6 +376,69 @@ export function SettingsForm() {
 								<FormControl>
 									<Input placeholder="123 Main St, City, Country" {...field} />
 								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="gstEnabled"
+						render={({ field }) => (
+							<FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+								<div className="space-y-0.5">
+									<FormLabel className="text-base">GST Enabled</FormLabel>
+									<FormDescription>
+										Enable GST calculation for your orders
+									</FormDescription>
+								</div>
+								<FormControl>
+									<Switch
+										checked={field.value}
+										onCheckedChange={field.onChange}
+									/>
+								</FormControl>
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="gstNumber"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>GST Number</FormLabel>
+								<FormControl>
+									<Input placeholder="Enter your GST number" {...field} />
+								</FormControl>
+								<FormDescription>
+									Your GST registration number for tax purposes
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="gstRate"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>GST Rate (%)</FormLabel>
+								<FormControl>
+									<Input
+										type="number"
+										min={0}
+										max={100}
+										step={0.01}
+										placeholder="Enter GST rate"
+										{...field}
+										onChange={(e) => field.onChange(Number(e.target.value))}
+									/>
+								</FormControl>
+								<FormDescription>
+									Tax rate to apply on orders (e.g. 18 for 18% GST)
+								</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
