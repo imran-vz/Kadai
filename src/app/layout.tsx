@@ -54,15 +54,17 @@ export default async function RootLayout({
 								}
 							>
 								<AppSidebar variant="inset" />
-								<SidebarInset className="bg-primary-foreground/20">
-									<SiteHeader />
-									<div className="flex flex-1 flex-col">
-										<div className="flex-1 px-4 text-primary">{children}</div>
+								<SidebarInset>
+									<div className="flex flex-1 flex-col rounded-lg bg-primary-foreground/20">
+										<SiteHeader />
+										<div className="flex flex-1 flex-col">
+											<div className="flex-1 px-4 text-primary">{children}</div>
+										</div>
+										<Toaster richColors position="top-center" />
+										<LoginToast />
+										<SpeedInsights />
+										<Analytics />
 									</div>
-									<Toaster richColors position="top-center" />
-									<LoginToast />
-									<SpeedInsights />
-									<Analytics />
 								</SidebarInset>
 							</SidebarProvider>
 						) : (
