@@ -1,11 +1,7 @@
 import Link from "next/link";
-
-import { auth } from "~/server/auth";
-import { UserDropDown } from "./user-drop-down";
+import { Button } from "../ui/button";
 
 export async function Navbar() {
-	const session = await auth();
-
 	return (
 		<header className="fixed top-0 z-50 w-full">
 			<div className="px-4 sm:px-0">
@@ -14,16 +10,14 @@ export async function Navbar() {
 						<h1 className="font-bold text-2xl">Kadai</h1>
 					</Link>
 
-					{session ? (
-						<UserDropDown session={session} key={session.user?.image} />
-					) : (
-						<Link
-							href="/login"
-							className="rounded-full bg-white/10 px-4 py-2 font-semibold no-underline outline transition hover:bg-white/20"
-						>
-							Sign in
-						</Link>
-					)}
+					<div className="flex items-center gap-2">
+						<Button variant="ghost" asChild>
+							<Link href="/login">Login</Link>
+						</Button>
+						<Button asChild>
+							<Link href="/signup">Sign up</Link>
+						</Button>
+					</div>
 				</div>
 			</div>
 		</header>

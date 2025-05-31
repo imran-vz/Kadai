@@ -19,7 +19,7 @@ export default async function Home() {
 						<div>
 							<ItemGrid />
 						</div>
-						<div className="h-[calc(100vh-16rem)] rounded-lg border bg-card md:h-[calc(100vh-30rem)]">
+						<div className="h-full max-h-[600px] min-h-[400px] rounded-lg border bg-card">
 							<Cart />
 						</div>
 					</div>
