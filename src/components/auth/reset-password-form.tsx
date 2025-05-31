@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -17,8 +19,6 @@ import {
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { api } from "~/trpc/react";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 
 const resetPasswordSchema = z
 	.object({

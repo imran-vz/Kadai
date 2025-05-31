@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,10 +16,9 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { api } from "~/trpc/react";
-import { useState } from "react";
-import { LoadingSpinner } from "../ui/loading-spinner";
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const changePasswordSchema = z
 	.object({

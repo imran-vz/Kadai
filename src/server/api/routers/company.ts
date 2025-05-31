@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { users } from "~/server/db/schema";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const updateCompanySchema = z.object({
 	companyName: z.string().min(1, "Company name is required"),

@@ -1,13 +1,13 @@
+import { render } from "@react-email/render";
 import { TRPCError } from "@trpc/server";
 import { genSalt, hash } from "bcrypt";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { generatePasswordResetToken } from "~/lib/auth";
-import { render } from "@react-email/render";
-import { sendEmail } from "~/lib/email";
 import { ForgotPasswordEmail } from "~/emails/forgot-password";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { generatePasswordResetToken } from "~/lib/auth";
+import { sendEmail } from "~/lib/email";
 import { passwordResetTokens, users } from "~/server/db/schema";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
 const signupSchema = z.object({
 	email: z.string().email(),

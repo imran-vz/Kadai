@@ -11,9 +11,9 @@ import {
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { Textarea } from "~/components/ui/textarea";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 import type { items } from "~/server/db/schema";
 import { api } from "~/trpc/react";
-import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 interface EditItemModalProps {
 	item: typeof items.$inferSelect;

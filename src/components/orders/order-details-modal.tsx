@@ -23,12 +23,12 @@ import {
 	TableHeader,
 	TableRow,
 } from "~/components/ui/table";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 import { cn, formatCurrency } from "~/lib/utils";
 import type { OrderItem } from "~/server/api/routers/orders";
 import type { orders } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 interface OrderDetailsModalProps {
 	onOpenChange: (open: boolean) => void;

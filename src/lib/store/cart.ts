@@ -1,7 +1,7 @@
+import type { InferSelectModel } from "drizzle-orm";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { items } from "~/server/db/schema";
-import type { InferSelectModel } from "drizzle-orm";
 
 export type Item = InferSelectModel<typeof items>;
 

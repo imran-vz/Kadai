@@ -6,8 +6,8 @@ import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useCart } from "~/lib/store/cart";
 import { formatCurrency } from "~/lib/utils";
-import { CheckoutModal } from "./checkout-modal";
 import { api } from "~/trpc/react";
+import { CheckoutModal } from "./checkout-modal";
 
 export function Cart() {
 	const cart = useCart();

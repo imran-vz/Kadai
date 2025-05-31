@@ -1,4 +1,4 @@
-import { api, HydrateClient } from "~/trpc/server";
+import { HydrateClient, api } from "~/trpc/server";
 import ItemsPage from "./client";
 
 export default function page() {

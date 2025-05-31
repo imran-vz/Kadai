@@ -22,11 +22,11 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { useMobileModal } from "~/hooks/use-mobile-modal";
 import { useCart } from "~/lib/store/cart";
 import { formatCurrency } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { useMobileModal } from "~/hooks/use-mobile-modal";
 
 const checkoutSchema = z.object({
 	customerName: z.string().min(1, "Customer name is required"),

@@ -6,6 +6,7 @@ import {
 	IconSettings,
 } from "@tabler/icons-react";
 
+import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -22,7 +23,6 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "~/components/ui/sidebar";
-import Link from "next/link";
 
 export function NavUser({
 	user,

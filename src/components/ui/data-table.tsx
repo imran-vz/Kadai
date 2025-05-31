@@ -2,12 +2,13 @@
 
 import {
 	type ColumnDef,
+	type SortingState,
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
 	useReactTable,
-	type SortingState,
 } from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import {
 	Table,
@@ -18,7 +19,6 @@ import {
 	TableRow,
 } from "~/components/ui/table";
 import { Button } from "./button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LoadingSpinner } from "./loading-spinner";
 
 interface DataTableProps<TData, TValue> {

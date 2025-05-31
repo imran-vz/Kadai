@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { columns } from "~/components/orders/columns";
 import { OrderDetailsModal } from "~/components/orders/order-details-modal";
 import { DataTable } from "~/components/ui/data-table";
-import { columns } from "~/components/orders/columns";
 import type { Order } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 

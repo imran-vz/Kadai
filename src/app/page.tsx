@@ -1,7 +1,7 @@
 import { Cart } from "~/components/cart/cart";
 import { ItemGrid } from "~/components/items/item-grid";
 import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import { HydrateClient, api } from "~/trpc/server";
 
 export default async function Home() {
 	const session = await auth();

@@ -13,8 +13,8 @@ import {
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
 import { Textarea } from "~/components/ui/textarea";
-import { api } from "~/trpc/react";
 import { useMobileModal } from "~/hooks/use-mobile-modal";
+import { api } from "~/trpc/react";
 
 export function AddItemModal() {
 	const [open, setOpen] = useState(false);
