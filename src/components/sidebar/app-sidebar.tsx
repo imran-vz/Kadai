@@ -1,17 +1,14 @@
 "use client";
 
 import {
-	IconCamera,
 	IconDashboard,
-	IconFileAi,
-	IconFileDescription,
 	IconFileWord,
 	IconFolder,
 	IconHelp,
 	IconInnerShadowTop,
 	IconListDetails,
 	IconMail,
-	IconSettings,
+	IconShoppingCart,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
 import type * as React from "react";
@@ -28,7 +25,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { Separator } from "../ui/separator";
 
 const data = {
 	navMain: [
@@ -36,6 +32,11 @@ const data = {
 			title: "Dashboard",
 			url: "/",
 			icon: IconDashboard,
+		},
+		{
+			title: "Shop",
+			url: "/shop",
+			icon: IconShoppingCart,
 		},
 		{
 			title: "Items",

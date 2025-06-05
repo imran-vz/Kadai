@@ -1,5 +1,7 @@
-import { Cart } from "~/components/cart/cart";
-import { ItemGrid } from "~/components/items/item-grid";
+import Link from "next/link";
+import { DashboardStats } from "~/components/dashboard/dashboard-stats";
+import { ItemsOverview } from "~/components/dashboard/items-overview";
+import { Button } from "~/components/ui/button";
 import { auth } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
@@ -7,26 +9,44 @@ export default async function Home() {
 	const session = await auth();
 
 	if (session?.user) {
+		void api.orders.getDashboardStats.prefetch();
 		void api.items.getAll.prefetch();
 		void api.user.me.prefetch();
 	}
 
 	return (
 		<HydrateClient>
-			<div className="container mx-auto flex w-full flex-col items-center justify-center gap-12 px-4 py-16">
+			<div className="container mx-auto flex w-full flex-col items-center justify-center gap-12 px-4 py-8">
 				{session ? (
-					<div className="container flex flex-col gap-8 md:grid md:grid-cols-[1fr_500px]">
-						<div>
-							<ItemGrid />
+					<div className="w-full space-y-8">
+						<div className="flex items-center justify-between">
+							<div>
+								<h1 className="font-bold text-3xl">Dashboard</h1>
+								<p className="text-muted-foreground">
+									Overview of your orders and items
+								</p>
+							</div>
+							<Button asChild>
+								<Link href="/shop">Go to Shop</Link>
+							</Button>
 						</div>
-						<div className="h-full max-h-[600px] min-h-[400px] rounded-lg border bg-card">
-							<Cart />
-						</div>
+
+						<DashboardStats />
+
+						<ItemsOverview />
 					</div>
 				) : (
-					<h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
-						Kadai
-					</h1>
+					<div className="space-y-6 text-center">
+						<h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
+							Kadai
+						</h1>
+						<p className="text-muted-foreground text-xl">
+							Manage your business orders and inventory
+						</p>
+						<Button asChild size="lg">
+							<Link href="/login">Get Started</Link>
+						</Button>
+					</div>
 				)}
 			</div>
 		</HydrateClient>

@@ -57,7 +57,7 @@ export default async function RootLayout({
 								<SidebarInset>
 									<div className="flex flex-1 flex-col rounded-lg bg-primary-foreground/20">
 										<SiteHeader />
-										<div className="flex max-h-[calc(100vh-64px)] flex-1 flex-col overflow-y-auto">
+										<div className="flex flex-1 flex-col overflow-y-auto sm:max-h-[calc(100vh-64px)]">
 											<div className="flex-1 px-4 text-primary">{children}</div>
 										</div>
 										<Toaster richColors position="top-center" />

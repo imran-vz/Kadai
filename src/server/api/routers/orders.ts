@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { orderItems, orders } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
@@ -75,6 +75,106 @@ export const ordersRouter = createTRPCRouter({
 				throw new Error("Failed to fetch orders");
 			}
 		}),
+
+	getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+		try {
+			if (!ctx.session.user.id) {
+				throw new Error("Unauthorized");
+			}
+
+			const now = new Date();
+			const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+			const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+			// Get total orders count
+			const [totalOrders] = await ctx.db
+				.select({ count: count() })
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+					),
+				);
+
+			// Get orders from last 7 days
+			const [ordersLast7Days] = await ctx.db
+				.select({ count: count() })
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+						gte(orders.createdAt, sevenDaysAgo),
+					),
+				);
+
+			// Get orders from last 30 days
+			const [ordersLast30Days] = await ctx.db
+				.select({ count: count() })
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+						gte(orders.createdAt, thirtyDaysAgo),
+					),
+				);
+
+			// Get orders by day for the last 7 days
+			const ordersByDay7 = await ctx.db
+				.select({
+					date: sql<string>`DATE(${orders.createdAt})`.as("date"),
+					count: count(),
+				})
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+						gte(orders.createdAt, sevenDaysAgo),
+					),
+				)
+				.groupBy(sql`DATE(${orders.createdAt})`)
+				.orderBy(desc(sql`DATE(${orders.createdAt})`))
+				.limit(7);
+
+			// Get orders by day for the last 30 days
+			const ordersByDay30 = await ctx.db
+				.select({
+					date: sql<string>`DATE(${orders.createdAt})`.as("date"),
+					count: count(),
+				})
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+						gte(orders.createdAt, thirtyDaysAgo),
+					),
+				)
+				.groupBy(sql`DATE(${orders.createdAt})`)
+				.orderBy(desc(sql`DATE(${orders.createdAt})`))
+				.limit(30);
+
+			return {
+				totalOrders: totalOrders?.count ?? 0,
+				ordersLast7Days: ordersLast7Days?.count ?? 0,
+				ordersLast30Days: ordersLast30Days?.count ?? 0,
+				ordersByDay7: ordersByDay7.map((order) => ({
+					date: order.date,
+					count: order.count,
+				})),
+				ordersByDay30: ordersByDay30.map((order) => ({
+					date: order.date,
+					count: order.count,
+				})),
+			};
+		} catch (error) {
+			console.error(error);
+			throw new Error("Failed to fetch dashboard stats");
+		}
+	}),
 
 	getOrderDetails: protectedProcedure
 		.input(z.object({ orderId: z.string() }))

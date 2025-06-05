@@ -1,8 +1,10 @@
 "use client";
 
 import type { Icon } from "@tabler/icons-react";
+import Link from "next/link";
 import type * as React from "react";
 
+import { Separator } from "~/components/ui/separator";
 import {
 	SidebarGroup,
 	SidebarGroupContent,
@@ -10,8 +12,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { Separator } from "../ui/separator";
-import Link from "next/link";
 
 export function NavSecondary({
 	items,
