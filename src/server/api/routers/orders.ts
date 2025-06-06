@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { orderItems, orders } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
@@ -85,6 +85,15 @@ export const ordersRouter = createTRPCRouter({
 			const now = new Date();
 			const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+			const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+			const endOfMonth = new Date(
+				now.getFullYear(),
+				now.getMonth() + 1,
+				0,
+				23,
+				59,
+				59,
+			);
 
 			// Get total orders count
 			const [totalOrders] = await ctx.db
@@ -121,6 +130,26 @@ export const ordersRouter = createTRPCRouter({
 					),
 				);
 
+			// Get current month completed orders summary
+			const [currentMonthSummary] = await ctx.db
+				.select({
+					totalCount: count(),
+					totalValue:
+						sql<string>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`.as(
+							"totalValue",
+						),
+				})
+				.from(orders)
+				.where(
+					and(
+						eq(orders.userId, ctx.session.user.id),
+						eq(orders.isDeleted, false),
+						eq(orders.status, "completed"),
+						gte(orders.createdAt, startOfMonth),
+						lte(orders.createdAt, endOfMonth),
+					),
+				);
+
 			// Get orders by day for the last 7 days
 			const ordersByDay7 = await ctx.db
 				.select({
@@ -136,26 +165,8 @@ export const ordersRouter = createTRPCRouter({
 					),
 				)
 				.groupBy(sql`DATE(${orders.createdAt})`)
-				.orderBy(desc(sql`DATE(${orders.createdAt})`))
+				.orderBy(sql`DATE(${orders.createdAt})`)
 				.limit(7);
-
-			// Get orders by day for the last 30 days
-			const ordersByDay30 = await ctx.db
-				.select({
-					date: sql<string>`DATE(${orders.createdAt})`.as("date"),
-					count: count(),
-				})
-				.from(orders)
-				.where(
-					and(
-						eq(orders.userId, ctx.session.user.id),
-						eq(orders.isDeleted, false),
-						gte(orders.createdAt, thirtyDaysAgo),
-					),
-				)
-				.groupBy(sql`DATE(${orders.createdAt})`)
-				.orderBy(desc(sql`DATE(${orders.createdAt})`))
-				.limit(30);
 
 			return {
 				totalOrders: totalOrders?.count ?? 0,
@@ -165,16 +176,136 @@ export const ordersRouter = createTRPCRouter({
 					date: order.date,
 					count: order.count,
 				})),
-				ordersByDay30: ordersByDay30.map((order) => ({
-					date: order.date,
-					count: order.count,
-				})),
+				currentMonthSummary: {
+					totalCount: currentMonthSummary?.totalCount ?? 0,
+					totalValue: Number.parseFloat(currentMonthSummary?.totalValue ?? "0"),
+					month: now.toLocaleDateString("en-US", {
+						month: "long",
+						year: "numeric",
+					}),
+				},
 			};
 		} catch (error) {
 			console.error(error);
 			throw new Error("Failed to fetch dashboard stats");
 		}
 	}),
+
+	getMonthlyOrders: protectedProcedure
+		.input(
+			z.object({
+				year: z.number(),
+				month: z.number().min(1).max(12),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				if (!ctx.session.user.id) {
+					throw new Error("Unauthorized");
+				}
+
+				const startDate = new Date(input.year, input.month - 1, 1);
+				const endDate = new Date(input.year, input.month, 0, 23, 59, 59);
+
+				// Get orders by day for the selected month
+				const ordersByDay = await ctx.db
+					.select({
+						date: sql<string>`DATE(${orders.createdAt})`.as("date"),
+						count: count(),
+						totalValue:
+							sql<string>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`.as(
+								"totalValue",
+							),
+					})
+					.from(orders)
+					.where(
+						and(
+							eq(orders.userId, ctx.session.user.id),
+							eq(orders.isDeleted, false),
+							gte(orders.createdAt, startDate),
+							lte(orders.createdAt, endDate),
+						),
+					)
+					.groupBy(sql`DATE(${orders.createdAt})`)
+					.orderBy(sql`DATE(${orders.createdAt})`);
+
+				return {
+					ordersByDay: ordersByDay.map((order) => ({
+						date: order.date,
+						count: order.count,
+						totalValue: Number.parseFloat(order.totalValue),
+					})),
+				};
+			} catch (error) {
+				console.error(error);
+				throw new Error("Failed to fetch monthly orders");
+			}
+		}),
+
+	getWeeklyOrders: protectedProcedure
+		.input(
+			z.object({
+				year: z.number(),
+				week: z.number().min(1).max(53),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				if (!ctx.session.user.id) {
+					throw new Error("Unauthorized");
+				}
+
+				// Calculate the start date of the week (Monday)
+				const jan1 = new Date(input.year, 0, 1);
+				const daysToFirstMonday = (8 - jan1.getDay()) % 7;
+				const firstMonday = new Date(input.year, 0, 1 + daysToFirstMonday);
+				const startDate = new Date(
+					firstMonday.getTime() + (input.week - 1) * 7 * 24 * 60 * 60 * 1000,
+				);
+				const endDate = new Date(
+					startDate.getTime() +
+						6 * 24 * 60 * 60 * 1000 +
+						23 * 60 * 60 * 1000 +
+						59 * 60 * 1000 +
+						59 * 1000,
+				);
+
+				// Get orders by day for the selected week
+				const ordersByDay = await ctx.db
+					.select({
+						date: sql<string>`DATE(${orders.createdAt})`.as("date"),
+						count: count(),
+						totalValue:
+							sql<string>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`.as(
+								"totalValue",
+							),
+					})
+					.from(orders)
+					.where(
+						and(
+							eq(orders.userId, ctx.session.user.id),
+							eq(orders.isDeleted, false),
+							gte(orders.createdAt, startDate),
+							lte(orders.createdAt, endDate),
+						),
+					)
+					.groupBy(sql`DATE(${orders.createdAt})`)
+					.orderBy(sql`DATE(${orders.createdAt})`);
+
+				return {
+					ordersByDay: ordersByDay.map((order) => ({
+						date: order.date,
+						count: order.count,
+						totalValue: Number.parseFloat(order.totalValue),
+					})),
+					weekStart: startDate.toISOString().split("T")[0],
+					weekEnd: endDate.toISOString().split("T")[0],
+				};
+			} catch (error) {
+				console.error(error);
+				throw new Error("Failed to fetch weekly orders");
+			}
+		}),
 
 	getOrderDetails: protectedProcedure
 		.input(z.object({ orderId: z.string() }))

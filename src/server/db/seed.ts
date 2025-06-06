@@ -1,9 +1,36 @@
 import "dotenv/config";
 import "../../env.js";
 
+import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { items, orderItems, orders } from "./schema";
+import { items, orderItems, orders, type Order } from "./schema";
+
+// Helper function to generate random date within the past 15 days
+function getRandomDateInPast15Days(): Date {
+	const now = new Date();
+	const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+	return faker.date.between({ from: fifteenDaysAgo, to: now });
+}
+
+type OrderStatus = Order["status"];
+
+// Helper function to generate random order status with realistic distribution
+function getRandomOrderStatus(): OrderStatus {
+	const statuses: OrderStatus[] = [
+		"completed",
+		"completed",
+		"completed",
+		"completed",
+		"completed", // 50% completed
+		"pending",
+		"pending", // 20% pending
+		"processing",
+		"processing", // 20% processing
+		"cancelled", // 10% cancelled
+	];
+	return faker.helpers.arrayElement(statuses);
+}
 
 async function main() {
 	// Clear existing data
@@ -12,173 +39,63 @@ async function main() {
 	await db.delete(items);
 	const testUserId = "pxl3kvpuxoewqsx1oolsfugd"; // Replace this with a real user ID
 
-	// Seed items
-	const itemsData = [
-		{
-			name: "Gaming Laptop",
-			description: "High-performance gaming laptop with RTX 4080",
-			price: "1999.99",
-			image: "https://placehold.co/600x400",
-			userId: testUserId,
-		},
-		{
-			name: "Mechanical Keyboard",
-			description: "RGB mechanical keyboard with Cherry MX switches",
-			price: "149.99",
-			image: "https://placehold.co/600x400",
-			userId: testUserId,
-		},
-		{
-			name: "Wireless Mouse",
-			description: "Ultra-lightweight wireless gaming mouse",
-			price: "79.99",
-			image: "https://placehold.co/600x400",
-			userId: testUserId,
-		},
-		{
-			name: "4K Monitor",
-			description: "32-inch 4K HDR gaming monitor",
-			price: "699.99",
-			image: "https://placehold.co/600x400",
-			userId: testUserId,
-		},
-		{
-			name: "Gaming Headset",
-			description: "Wireless gaming headset with surround sound",
-			price: "199.99",
-			image: "https://placehold.co/600x400",
-			userId: testUserId,
-		},
+	// Generate random products using faker (Indian Rupee pricing)
+	const productCategories = [
+		{ category: "Electronics", priceRange: [5000, 200000] },
+		{ category: "Clothing", priceRange: [500, 15000] },
+		{ category: "Home & Kitchen", priceRange: [1000, 50000] },
+		{ category: "Books", priceRange: [200, 2000] },
+		{ category: "Sports", priceRange: [1500, 25000] },
+		{ category: "Beauty", priceRange: [300, 8000] },
 	];
+
+	const numberOfProducts = faker.number.int({ min: 20, max: 40 });
+	const itemsData = [];
+
+	for (let i = 0; i < numberOfProducts; i++) {
+		const category = faker.helpers.arrayElement(productCategories);
+		const price = faker.number.float({
+			min: category.priceRange[0],
+			max: category.priceRange[1],
+			fractionDigits: 2,
+		});
+
+		itemsData.push({
+			name: faker.commerce.productName(),
+			description: faker.commerce.productDescription(),
+			price: price.toFixed(2),
+			image: `https://picsum.photos/600/400?random=${i}`,
+			userId: testUserId,
+		});
+	}
 
 	const itemsDataWithIds = await db.insert(items).values(itemsData).returning();
 
-	// Get a test user ID (replace with an actual user ID from your database)
+	// Generate random number of orders (15-45 orders over 15 days)
+	const numberOfOrders = faker.number.int({ min: 15, max: 45 });
+	const ordersData = [];
 
-	// Seed orders
-	const ordersData = [
-		{
+	for (let i = 0; i < numberOfOrders; i++) {
+		const orderDate = getRandomDateInPast15Days();
+		const status = getRandomOrderStatus();
+
+		ordersData.push({
 			userId: testUserId,
-			status: "completed" as const,
-			total: "2149.98", // Gaming Laptop + Headset
-			createdAt: new Date("2024-01-15T10:00:00Z"),
-			updatedAt: new Date("2024-01-15T10:00:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "processing" as const,
-			total: "229.98", // Mouse + Keyboard
-			createdAt: new Date("2024-02-01T15:30:00Z"),
-			updatedAt: new Date("2024-02-01T15:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "pending" as const,
-			total: "699.99", // 4K Monitor
-			createdAt: new Date("2024-02-15T09:15:00Z"),
-			updatedAt: new Date("2024-02-15T09:15:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "cancelled" as const,
-			total: "149.99", // Mechanical Keyboard
-			createdAt: new Date("2024-03-01T12:45:00Z"),
-			updatedAt: new Date("2024-03-01T12:45:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "completed" as const,
-			total: "199.99", // Gaming Laptop
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "pending" as const,
-			total: "149.99", // Mechanical Keyboard
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "cancelled" as const,
-			total: "149.99", // Mechanical Keyboard
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "completed" as const,
-			total: "199.99", // Gaming Laptop
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "pending" as const,
-			total: "149.99", // Mechanical Keyboard
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "completed" as const,
-			total: "199.99", // Gaming Laptop
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-		{
-			userId: testUserId,
-			status: "completed" as const,
-			total: "199.99", // Gaming Laptop
-			createdAt: new Date("2024-03-15T14:30:00Z"),
-			updatedAt: new Date("2024-03-15T14:30:00Z"),
-			customerName: "John Doe",
-			deliveryCost: "10",
-			tax: "18",
-			taxRate: "18",
-		},
-	];
+			status,
+			total: "0.00", // Will be calculated after order items are added
+			createdAt: orderDate,
+			updatedAt: orderDate,
+			customerName: faker.person.fullName(),
+			deliveryCost: faker.number
+				.float({ min: 50, max: 500, fractionDigits: 2 })
+				.toFixed(2),
+			tax: "0.00", // Will be calculated
+			taxRate: faker.helpers.arrayElement(["0.00", "18.00"]),
+		});
+	}
+
+	// Sort orders by creation date for better visualization
+	ordersData.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
 	const ordersDataWithIds = await db
 		.insert(orders)
@@ -186,51 +103,47 @@ async function main() {
 		.returning();
 
 	for (const order of ordersDataWithIds) {
-		const index = Math.floor(Math.random() * itemsDataWithIds.length);
-		const randomItem1 = itemsDataWithIds[index];
-		const randomItem2 =
-			itemsDataWithIds.at(index + 1) || itemsDataWithIds.at(index - 1);
-		const randomItem3 =
-			itemsDataWithIds.at(index + 2) || itemsDataWithIds.at(index - 2);
+		// Generate random number of items per order (1-4 items)
+		const numberOfItems = faker.number.int({ min: 1, max: 4 });
+		const selectedItems = faker.helpers.arrayElements(
+			itemsDataWithIds,
+			numberOfItems,
+		);
 
-		const orderItemsData = [
-			{
-				orderId: order.id,
-				itemId: randomItem1?.id || "",
-				quantity: 1,
-			},
-			{
-				orderId: order.id,
-				itemId: randomItem2?.id || "",
-				quantity: 1,
-			},
-			{
-				orderId: order.id,
-				itemId: randomItem3?.id || "",
-				quantity: 1,
-			},
-		];
+		const orderItemsData = selectedItems.map((item) => ({
+			orderId: order.id,
+			itemId: item.id,
+			quantity: faker.number.int({ min: 1, max: 3 }),
+		}));
 
 		await db.insert(orderItems).values(orderItemsData);
-		const subtotal =
-			Number.parseFloat(randomItem1?.price || "0") +
-			Number.parseFloat(randomItem2?.price || "0") +
-			Number.parseFloat(randomItem3?.price || "0");
-		const tax = (subtotal * Number.parseFloat(order.taxRate || "0")) / 100;
-		const total = subtotal + Number.parseFloat(order.deliveryCost || "0") + tax;
+
+		// Calculate totals
+		let subtotal = 0;
+		for (const orderItem of orderItemsData) {
+			const item = itemsDataWithIds.find((i) => i.id === orderItem.itemId);
+			if (item) {
+				subtotal += Number.parseFloat(item.price) * orderItem.quantity;
+			}
+		}
+
+		const taxRate = Number.parseFloat(order.taxRate || "0");
+		const tax = (subtotal * taxRate) / 100;
+		const deliveryCost = Number.parseFloat(order.deliveryCost || "0");
+		const total = subtotal + deliveryCost + tax;
 
 		await db
 			.update(orders)
 			.set({
 				total: total.toFixed(2),
 				tax: tax.toFixed(2),
-				taxRate: order.taxRate,
-				deliveryCost: order.deliveryCost,
 			})
 			.where(eq(orders.id, order.id));
 	}
 
-	console.log("Seed completed successfully!");
+	console.log(
+		`Seed completed successfully! Generated ${numberOfOrders} orders over the past 15 days.`,
+	);
 	process.exit(0);
 }
 
