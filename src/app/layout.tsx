@@ -68,18 +68,20 @@ export default async function RootLayout({
 								</SidebarInset>
 							</SidebarProvider>
 						) : (
-							<div className="flex h-screen">
-								<div className="flex flex-1 flex-col">
-									<Navbar />
-									<div className="flex-1 bg-gradient-to-b bg-primary-foreground/20 px-4 pt-[4.5rem] text-primary">
-										{children}
+							<div className="bg-white">
+								<div className="flex h-screen">
+									<div className="flex flex-1 flex-col">
+										<Navbar />
+										<div className="flex-1 bg-gradient-to-b bg-primary-foreground/20 px-4 pt-[4.5rem] text-primary">
+											{children}
+										</div>
+										<Footer />
 									</div>
-									<Footer />
+									<Toaster richColors position="top-center" />
+									<LoginToast />
+									<SpeedInsights />
+									<Analytics />
 								</div>
-								<Toaster richColors position="top-center" />
-								<LoginToast />
-								<SpeedInsights />
-								<Analytics />
 							</div>
 						)}
 					</SessionProvider>
