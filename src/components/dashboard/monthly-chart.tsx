@@ -170,7 +170,7 @@ export function MonthlyChart() {
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="px-0">
 				{isLoading ? (
 					<div className="flex h-[300px] items-center justify-center">
 						<LoadingSpinner className="h-8 w-8" />
@@ -183,7 +183,7 @@ export function MonthlyChart() {
 					<ResponsiveContainer width="100%" height={300}>
 						<ComposedChart
 							data={chartData}
-							margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+							margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
 						>
 							<CartesianGrid strokeDasharray="3 3" />
 							<XAxis dataKey="date" tick={{ fontSize: 10 }} height={60} />
@@ -197,6 +197,12 @@ export function MonthlyChart() {
 								orientation="right"
 								tick={{ fontSize: 12 }}
 								allowDecimals={false}
+								tickFormatter={(value: number) => {
+									if (value >= 1000) {
+										return `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
+									}
+									return value.toString();
+								}}
 							/>
 							<Tooltip
 								labelFormatter={(label, payload) => {
