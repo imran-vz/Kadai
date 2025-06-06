@@ -41,7 +41,7 @@ export default async function RootLayout({
 
 	return (
 		<html lang="en" className={`${inter.variable}`}>
-			<body>
+			<body className="bg-primary">
 				<TRPCReactProvider>
 					<SessionProvider session={session}>
 						{session ? (
@@ -55,9 +55,9 @@ export default async function RootLayout({
 							>
 								<AppSidebar variant="inset" />
 								<SidebarInset>
-									<div className="flex flex-1 flex-col rounded-lg bg-primary-foreground/20">
+									<div className="flex w-full flex-1 flex-col rounded-lg bg-primary-foreground/20">
 										<SiteHeader />
-										<div className="flex flex-1 flex-col overflow-y-auto sm:max-h-[calc(100vh-64px)]">
+										<div className="flex flex-1 flex-col overflow-y-auto sm:max-h-[calc(100svh-64px)]">
 											<div className="flex-1 px-4 text-primary">{children}</div>
 										</div>
 										<Toaster richColors position="top-center" />
