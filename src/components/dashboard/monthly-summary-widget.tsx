@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, DollarSign } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { formatCurrency } from "~/lib/utils";
 import { LoadingSpinner } from "../ui/loading-spinner";

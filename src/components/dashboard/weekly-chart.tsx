@@ -1,5 +1,6 @@
 "use client";
 
+import { getWeek } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import {
@@ -23,7 +24,6 @@ import {
 import { formatCurrency } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
-import { getWeek } from "date-fns";
 
 export function WeeklyChart() {
 	const currentDate = new Date();
@@ -220,11 +220,11 @@ export function WeeklyChart() {
 									}
 									return label;
 								}}
-								formatter={(value: number, name: string) => {
+								formatter={(value: number, name: string): [string, string] => {
 									if (name === "totalValue") {
 										return [formatCurrency(value), "Total Value"];
 									}
-									return [value, "Orders"];
+									return [value.toString(), "Orders"];
 								}}
 							/>
 							<Bar

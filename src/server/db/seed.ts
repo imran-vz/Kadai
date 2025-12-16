@@ -4,7 +4,7 @@ import "../../env.js";
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
-import { items, orderItems, orders, type Order } from "./schema";
+import { type Order, items, orderItems, orders } from "./schema";
 
 // Helper function to generate random date within the past 15 days
 function getRandomDateInPast15Days(): Date {

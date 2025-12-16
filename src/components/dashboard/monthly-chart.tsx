@@ -1,16 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import {
 	Bar,
+	CartesianGrid,
 	ComposedChart,
 	Line,
-	CartesianGrid,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
 } from "recharts";
-import { useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -217,11 +217,11 @@ export function MonthlyChart() {
 									}
 									return label;
 								}}
-								formatter={(value: number, name: string) => {
+								formatter={(value: number, name: string): [string, string] => {
 									if (name === "totalValue") {
 										return [formatCurrency(value), "Total Value"];
 									}
-									return [value, "Orders"];
+									return [value.toString(), "Orders"];
 								}}
 							/>
 							<Bar
