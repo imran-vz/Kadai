@@ -10,8 +10,8 @@ import {
 	IconMail,
 	IconShoppingCart,
 } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
 import type * as React from "react";
+import { useSession } from "~/lib/auth-client";
 
 import { NavMain } from "~/components/sidebar/nav-main";
 import { NavSecondary } from "~/components/sidebar/nav-secondary";
@@ -69,7 +69,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { data: session } = useSession();
+	const session = useSession();
 	return (
 		<Sidebar collapsible="offcanvas" {...props}>
 			<SidebarHeader>
@@ -94,9 +94,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			<SidebarFooter>
 				<NavUser
 					user={{
-						name: session?.user?.name ?? "",
-						email: session?.user?.email ?? "",
-						avatar: session?.user?.image ?? "",
+						name: session.data?.user?.name ?? "",
+						email: session.data?.user?.email ?? "",
+						avatar: session.data?.user?.image ?? "",
 					}}
 				/>
 			</SidebarFooter>

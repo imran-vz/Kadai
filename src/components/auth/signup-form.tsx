@@ -19,7 +19,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
-import { api } from "~/trpc/react";
+import { authClient } from "~/lib/auth-client";
 import { SignInWithGoogle } from "./signin-button";
 
 const signupSchema = z.object({
@@ -27,7 +27,7 @@ const signupSchema = z.object({
 	password: z
 		.string()
 		.min(8, "Password must be at least 8 characters")
-		.max(30, "Password must be less than 30 characters"),
+		.max(80, "Password must be less than 80 characters"),
 	name: z.string().min(1, "Name is required"),
 });
 
@@ -36,6 +36,7 @@ type SignupValues = z.infer<typeof signupSchema>;
 export function SignupForm() {
 	const router = useRouter();
 	const [showPassword, setShowPassword] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<SignupValues>({
 		resolver: zodResolver(signupSchema),
@@ -46,18 +47,28 @@ export function SignupForm() {
 		},
 	});
 
-	const signup = api.auth.signup.useMutation({
-		onSuccess: () => {
+	const onSubmit = async (data: SignupValues) => {
+		setIsLoading(true);
+		try {
+			const result = await authClient.signUp.email({
+				email: data.email,
+				password: data.password,
+				name: data.name,
+			});
+
+			if (result.error) {
+				toast.error(result.error.message || "Failed to create account");
+				return;
+			}
+
 			toast.success("Account created successfully");
 			router.push("/login");
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
-
-	const onSubmit = (data: SignupValues) => {
-		signup.mutate(data);
+		} catch (error) {
+			console.error(error);
+			toast.error("Something went wrong");
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -151,8 +162,8 @@ export function SignupForm() {
 							/>
 						</div>
 
-						<Button type="submit" disabled={signup.isPending}>
-							{signup.isPending ? (
+						<Button type="submit" disabled={isLoading}>
+							{isLoading ? (
 								<LoadingSpinner className="size-4" />
 							) : (
 								"Create account"

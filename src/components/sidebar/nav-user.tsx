@@ -23,6 +23,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "~/components/ui/sidebar";
+import { authClient } from "~/lib/auth-client";
 
 export function NavUser({
 	user,
@@ -87,11 +88,19 @@ export function NavUser({
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem asChild>
-							<a href="/api/auth/signout">
-								<IconLogout />
-								Log out
-							</a>
+						<DropdownMenuItem
+							onClick={async () => {
+								await authClient.signOut({
+									fetchOptions: {
+										onSuccess: () => {
+											window.location.href = "/login";
+										},
+									},
+								});
+							}}
+						>
+							<IconLogout />
+							Log out
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

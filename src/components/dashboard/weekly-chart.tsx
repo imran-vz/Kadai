@@ -88,7 +88,7 @@ export function WeeklyChart() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex h-[300px] items-center justify-center text-red-500">
+					<div className="flex h-75 items-center justify-center text-red-500">
 						Error loading data: {error.message}
 					</div>
 				</CardContent>
@@ -178,7 +178,7 @@ export function WeeklyChart() {
 			</CardHeader>
 			<CardContent className="px-0">
 				{isLoading ? (
-					<div className="flex h-[300px] items-center justify-center">
+					<div className="flex h-75 items-center justify-center">
 						<LoadingSpinner className="h-8 w-8" />
 					</div>
 				) : (
@@ -243,19 +243,29 @@ export function WeeklyChart() {
 									payload,
 									cx,
 									cy,
+									index,
 								}: {
 									payload: { count: number; totalValue: number };
 									cx: number;
 									cy: number;
+									index: number;
 								}) => {
 									// Only show dot if there are orders or total value > 0
 									if (
 										payload &&
 										(payload.count > 0 || payload.totalValue > 0)
 									) {
-										return <circle cx={cx} cy={cy} fill="#c4cf29" r={3} />;
+										return (
+											<circle
+												key={`dot-${index}`}
+												cx={cx}
+												cy={cy}
+												fill="#c4cf29"
+												r={3}
+											/>
+										);
 									}
-									return <g />;
+									return <g key={`empty-${index}`} />;
 								}}
 								activeDot={{ r: 5 }}
 								animationEasing="linear"

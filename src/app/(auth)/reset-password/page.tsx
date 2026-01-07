@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import ForgotPasswordForm from "~/components/auth/forgot-password-form";
 import ResetPasswordPage from "~/components/auth/reset-password-form";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 
 export default async function ForgotPasswordPage() {
-	const session = await auth();
+	const session = await getSession();
 	if (session) {
 		redirect("/");
 	}

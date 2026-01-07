@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -16,8 +16,8 @@ import {
 	FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import { authClient } from "~/lib/auth-client";
 import { cn } from "~/lib/utils";
-import { api } from "~/trpc/react";
 import { LoadingSpinner } from "../ui/loading-spinner";
 
 const changePasswordSchema = z
@@ -35,16 +35,7 @@ export function ChangePasswordForm() {
 	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-	const changePassword = api.user.changePassword.useMutation({
-		onSuccess: () => {
-			toast.success("Password changed successfully");
-			form.reset();
-		},
-		onError: (error) => {
-			toast.error(error.message);
-		},
-	});
+	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<z.infer<typeof changePasswordSchema>>({
 		resolver: zodResolver(changePasswordSchema),
@@ -55,11 +46,27 @@ export function ChangePasswordForm() {
 		},
 	});
 
-	const onSubmit = (data: z.infer<typeof changePasswordSchema>) => {
-		changePassword.mutate({
-			currentPassword: data.currentPassword,
-			newPassword: data.newPassword,
-		});
+	const onSubmit = async (data: z.infer<typeof changePasswordSchema>) => {
+		setIsLoading(true);
+		try {
+			const result = await authClient.changePassword({
+				currentPassword: data.currentPassword,
+				newPassword: data.newPassword,
+			});
+
+			if (result.error) {
+				toast.error(result.error.message || "Failed to change password");
+				return;
+			}
+
+			toast.success("Password changed successfully");
+			form.reset();
+		} catch (error) {
+			console.error(error);
+			toast.error("Failed to change password");
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -164,17 +171,11 @@ export function ChangePasswordForm() {
 					)}
 				/>
 
-				<Button
-					type="submit"
-					className="relative"
-					disabled={changePassword.isPending}
-				>
-					{changePassword.isPending ? (
+				<Button type="submit" className="relative" disabled={isLoading}>
+					{isLoading ? (
 						<LoadingSpinner className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-4 w-4" />
 					) : null}
-					<span className={cn(changePassword.isPending && "invisible")}>
-						Change Password
-					</span>
+					<span className={cn(isLoading && "invisible")}>Change Password</span>
 				</Button>
 			</form>
 		</Form>

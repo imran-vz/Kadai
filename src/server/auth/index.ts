@@ -1,16 +1,13 @@
-import NextAuth from "next-auth";
+import { headers } from "next/headers";
 import { cache } from "react";
 
-import { authConfig } from "./config";
+import { auth } from "./config";
 
-const {
-	auth: uncachedAuth,
-	handlers,
-	signIn,
-	signOut,
-	unstable_update: update,
-} = NextAuth(authConfig);
+export { auth };
 
-const auth = cache(uncachedAuth);
-
-export { auth, handlers, signIn, signOut, update };
+export const getSession = cache(async () => {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	return session;
+});

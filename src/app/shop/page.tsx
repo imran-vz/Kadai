@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { Cart } from "~/components/cart/cart";
 import { ItemGrid } from "~/components/items/item-grid";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 export default async function ShopPage() {
-	const session = await auth();
+	const session = await getSession();
 
 	if (!session?.user) {
 		redirect("/login");
@@ -29,7 +29,7 @@ export default async function ShopPage() {
 						<div>
 							<ItemGrid />
 						</div>
-						<div className="h-full max-h-[600px] min-h-[400px] rounded-lg border bg-card">
+						<div className="h-full max-h-150 min-h-100 rounded-lg border bg-card">
 							<Cart />
 						</div>
 					</div>

@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 import OrdersPage from "./client";
 
 export default async function page() {
-	const session = await auth();
+	const session = await getSession();
 
 	if (!session) {
 		redirect("/login");

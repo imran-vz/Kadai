@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { ChangePasswordForm } from "~/components/settings/change-password-form";
 import { SettingsForm } from "~/components/settings/settings-form";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 export default async function SettingsPage() {
-	const session = await auth();
+	const session = await getSession();
 
 	if (!session?.user.id) {
 		redirect("/login");

@@ -5,24 +5,25 @@ import { DashboardStats } from "~/components/dashboard/dashboard-stats";
 import { ItemsOverview } from "~/components/dashboard/items-overview";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 import { HydrateClient, api } from "~/trpc/server";
 
 export default async function Home() {
-	const session = await auth();
+	const session = await getSession();
 
 	if (session?.user) {
-		void api.items.getAll.prefetch();
-		void api.user.me.prefetch();
-		void api.orders.getDashboardStats.prefetch();
 		const currentDate = new Date();
+		const currentYear = currentDate.getFullYear();
+		const currentWeek = getWeek(currentDate);
+		const currentMonth = currentDate.getMonth() + 1;
+
 		void api.orders.getWeeklyOrders.prefetch({
-			week: getWeek(currentDate) - 1,
-			year: currentDate.getFullYear(),
+			week: currentWeek - 1,
+			year: currentYear,
 		});
 		void api.orders.getMonthlyOrders.prefetch({
-			month: currentDate.getMonth() + 1,
-			year: currentDate.getFullYear(),
+			month: currentMonth,
+			year: currentYear,
 		});
 	}
 
@@ -54,8 +55,8 @@ export default async function Home() {
 									</div>
 
 									<div className="grid gap-4 md:grid-cols-2">
-										<Skeleton className="h-[28rem] w-full bg-white" />
-										<Skeleton className="h-[28rem] w-full bg-white" />
+										<Skeleton className="h-112 w-full bg-white" />
+										<Skeleton className="h-112 w-full bg-white" />
 									</div>
 								</div>
 							}

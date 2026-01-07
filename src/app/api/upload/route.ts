@@ -3,13 +3,13 @@ import { put } from "@vercel/blob";
 import { and, count, eq, gte } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { env } from "~/env";
-import { auth } from "~/server/auth";
+import { getSession } from "~/server/auth";
 import { db } from "~/server/db";
-import { imageUpdateLogs, users } from "~/server/db/schema";
+import { imageUpdateLogs, user } from "~/server/db/schema";
 
 export async function POST(req: Request) {
 	try {
-		const session = await auth();
+		const session = await getSession();
 		if (!session?.user) {
 			return new NextResponse("Unauthorized", { status: 401 });
 		}
@@ -71,9 +71,9 @@ export async function POST(req: Request) {
 
 		// Update user's image or company logo
 		await db
-			.update(users)
+			.update(user)
 			.set(type === "profile" ? { image: blob.url } : { companyLogo: blob.url })
-			.where(eq(users.id, session.user.id));
+			.where(eq(user.id, session.user.id));
 
 		const updatesLeft = env.MAX_IMAGE_UPLOADS_PER_DAY - (updateCount.count + 1);
 

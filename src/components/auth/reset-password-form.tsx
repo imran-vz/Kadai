@@ -18,7 +18,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
-import { api } from "~/trpc/react";
+import { authClient } from "~/lib/auth-client";
 
 const resetPasswordSchema = z
 	.object({
@@ -30,22 +30,13 @@ const resetPasswordSchema = z
 		path: ["confirmPassword"],
 	});
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-	const resetPassword = api.auth.resetPassword.useMutation({
-		onSuccess: () => {
-			toast.success("Password reset successful");
-			router.push("/login");
-		},
-		onError: (error) => {
-			toast.error(error.message || "Something went wrong. Please try again.");
-		},
-	});
+	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<z.infer<typeof resetPasswordSchema>>({
 		resolver: zodResolver(resetPasswordSchema),
@@ -66,11 +57,29 @@ export default function ResetPasswordPage() {
 		);
 	}
 
-	function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
-		resetPassword.mutate({
-			token: token as string,
-			password: values.password,
-		});
+	async function onSubmit(values: z.infer<typeof resetPasswordSchema>) {
+		setIsLoading(true);
+		try {
+			const result = await authClient.resetPassword({
+				token: token as string,
+				newPassword: values.password,
+			});
+
+			if (result.error) {
+				toast.error(
+					result.error.message || "Something went wrong. Please try again.",
+				);
+				return;
+			}
+
+			toast.success("Password reset successful");
+			router.push("/login");
+		} catch (error) {
+			console.error(error);
+			toast.error("Something went wrong. Please try again.");
+		} finally {
+			setIsLoading(false);
+		}
 	}
 
 	return (
@@ -145,12 +154,8 @@ export default function ResetPasswordPage() {
 							</FormItem>
 						)}
 					/>
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={resetPassword.isPending}
-					>
-						{resetPassword.isPending ? (
+					<Button type="submit" className="w-full" disabled={isLoading}>
+						{isLoading ? (
 							<LoadingSpinner className="h-4 w-4" />
 						) : (
 							"Reset Password"

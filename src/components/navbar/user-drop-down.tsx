@@ -1,6 +1,5 @@
 "use client";
 
-import type { Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,6 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import type { Session } from "~/server/auth/config";
 
 export function UserDropDown({ session }: { session: Session }) {
 	return (

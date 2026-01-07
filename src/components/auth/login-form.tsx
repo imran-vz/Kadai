@@ -3,13 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, GalleryVerticalEnd, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { signInWithCredentials } from "~/actions/sign-in";
+import { authClient } from "~/lib/auth-client";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import {
@@ -23,38 +22,15 @@ import {
 import { Input } from "../ui/input";
 import { SignInWithGoogle } from "./signin-button";
 
-const passwordRegex =
-	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
 const loginSchema = z.object({
 	email: z.string().email(),
-	password: z
-		.string()
-		.min(8)
-		.max(30)
-		.superRefine((val, ctx) => {
-			if (val.length === 0) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Password is required",
-				});
-			}
-
-			if (!passwordRegex.test(val)) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message:
-						"Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter and one special character",
-				});
-			}
-		}),
+	password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export function LoginForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
-	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 	const [fieldType, setFieldType] = useState<"text" | "password">("password");
 	const form = useForm<z.infer<typeof loginSchema>>({
@@ -67,20 +43,21 @@ export function LoginForm({
 
 	const onSubmit = async (data: z.infer<typeof loginSchema>) => {
 		setIsLoading(true);
-		const formData = new FormData();
-		formData.append("email", data.email);
-		formData.append("password", data.password);
 		try {
-			const result = await signInWithCredentials(formData);
-			if (result) {
-				console.error(result);
-				toast.error(result);
+			const result = await authClient.signIn.email({
+				email: data.email,
+				password: data.password,
+			});
+
+			if (result.error) {
+				toast.error(result.error.message || "Invalid email or password");
 				return;
 			}
 
 			window.location.href = "/?welcome=1";
 		} catch (error) {
 			console.error(error);
+			toast.error("Invalid email or password");
 		} finally {
 			setIsLoading(false);
 		}

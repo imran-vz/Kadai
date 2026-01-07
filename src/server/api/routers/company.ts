@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { users } from "~/server/db/schema";
+import { user } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const updateCompanySchema = z.object({
@@ -18,7 +18,7 @@ export const companyRouter = createTRPCRouter({
 			const { db, session } = ctx;
 
 			await db
-				.update(users)
+				.update(user)
 				.set({
 					companyName: input.companyName,
 					companyAddress: input.companyAddress,
@@ -26,7 +26,7 @@ export const companyRouter = createTRPCRouter({
 					gstEnabled: input.gstEnabled,
 					gstRate: input.gstRate.toString(),
 				})
-				.where(eq(users.id, session.user.id));
+				.where(eq(user.id, session.user.id));
 
 			return { success: true };
 		}),

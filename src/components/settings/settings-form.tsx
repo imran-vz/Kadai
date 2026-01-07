@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ImageIcon, Trash2, Upload } from "lucide-react";
-import { useSession } from "next-auth/react";
+
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -36,8 +36,7 @@ const settingsFormSchema = z.object({
 });
 
 export function SettingsForm() {
-	const { update, data: sessionData } = useSession();
-	const [user] = api.user.me.useSuspenseQuery();
+	const [user, { refetch }] = api.user.me.useSuspenseQuery();
 	const [profilePreview, setProfilePreview] = useState<string | null>(
 		user.image || null,
 	);
@@ -85,21 +84,10 @@ export function SettingsForm() {
 		onSuccess: (data, variables) => {
 			if (variables.type === "profile") {
 				setProfilePreview(data.url);
-				update({
-					user: {
-						...(sessionData ? sessionData.user : {}),
-						image: data.url,
-					},
-				});
 			} else {
 				setLogoPreview(data.url);
-				update({
-					user: {
-						...(sessionData ? sessionData.user : {}),
-						companyLogo: data.url,
-					},
-				});
 			}
+			void refetch();
 			toast.success(data.message);
 		},
 		onError: (error) => {
@@ -112,21 +100,10 @@ export function SettingsForm() {
 			toast.success(message);
 			if (type === "profile") {
 				setProfilePreview(null);
-				update({
-					user: {
-						...(sessionData ? sessionData.user : {}),
-						image: null,
-					},
-				});
 			} else {
 				setLogoPreview(null);
-				update({
-					user: {
-						...(sessionData ? sessionData.user : {}),
-						companyLogo: null,
-					},
-				});
 			}
+			void refetch();
 		},
 		onError: () => {
 			toast.error("Failed to delete image");
@@ -175,16 +152,7 @@ export function SettingsForm() {
 					},
 					onSuccess() {
 						toast.success("Settings updated successfully");
-						update({
-							user: {
-								...(sessionData ? sessionData.user : {}),
-								companyName: data.companyName,
-								companyAddress: data.companyAddress,
-								gstNumber: data.gstNumber,
-								gstEnabled: data.gstEnabled,
-								gstRate: data.gstRate,
-							},
-						});
+						void refetch();
 					},
 				},
 			);

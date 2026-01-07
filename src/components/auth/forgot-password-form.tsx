@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,24 +16,14 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { LoadingSpinner } from "~/components/ui/loading-spinner";
-import { api } from "~/trpc/react";
+import { authClient } from "~/lib/auth-client";
 
 const forgotPasswordSchema = z.object({
 	email: z.string().email(),
 });
 
 export default function ForgotPasswordForm() {
-	const forgotPassword = api.auth.forgotPassword.useMutation({
-		onSuccess: () => {
-			toast.success(
-				"If an account exists, you'll receive a reset link shortly.",
-			);
-			form.reset();
-		},
-		onError: () => {
-			toast.error("Something went wrong. Please try again.");
-		},
-	});
+	const [isLoading, setIsLoading] = useState(false);
 
 	const form = useForm<z.infer<typeof forgotPasswordSchema>>({
 		resolver: zodResolver(forgotPasswordSchema),
@@ -41,8 +32,29 @@ export default function ForgotPasswordForm() {
 		},
 	});
 
-	function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
-		forgotPassword.mutate(values);
+	async function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
+		setIsLoading(true);
+		try {
+			const result = await authClient.requestPasswordReset({
+				email: values.email,
+				redirectTo: "/reset-password",
+			});
+
+			if (result.error) {
+				toast.error(result.error.message || "Something went wrong");
+				return;
+			}
+
+			toast.success(
+				"If an account exists, you'll receive a reset link shortly.",
+			);
+			form.reset();
+		} catch (error) {
+			console.error(error);
+			toast.error("Something went wrong. Please try again.");
+		} finally {
+			setIsLoading(false);
+		}
 	}
 
 	return (
@@ -69,12 +81,8 @@ export default function ForgotPasswordForm() {
 							</FormItem>
 						)}
 					/>
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={forgotPassword.isPending}
-					>
-						{forgotPassword.isPending ? (
+					<Button type="submit" className="w-full" disabled={isLoading}>
+						{isLoading ? (
 							<LoadingSpinner className="h-4 w-4" />
 						) : (
 							"Send Reset Link"
